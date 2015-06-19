@@ -15,7 +15,11 @@ connect(RethinkDBHost) ->
 close(Sock) ->
   gen_tcp:close(Sock).
 
+handshake(Sock) ->
+  gen_tcp:send(Sock, "lol").
+
 run() ->
   RethinkDBHost = "localhost", % to make it runnable on one machine
   RethinkSock   = connect(RethinkDBHost),
+  handshake(RethinkSock),
   close(RethinkSock).
