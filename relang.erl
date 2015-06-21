@@ -35,10 +35,48 @@ handshake(Sock, AuthKey) ->
           {error, Response}
   end.
 
+query(Socket) ->
+  {A1, A2, A3} = now(),
+  Query = foo,
+  random:seed(A1, A2, A3),
+  Token = random:uniform(18446744073709551616),
+  io:format("QueryToken = ~p~n", [Token]),
+  ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
+  ok = gen_tcp:send(Socket, [<<3:32/little-unsigned>>]),
+  
+  {Result, Code} = gen_tcp:send(Socket, [Query]),
+  case Result of
+    ok -> ok;
+    error ->
+      io:fwrite("Error: ~s ~n", [Code]),
+      {error, Code}
+  end,
+
+  {ok, Response} = read_until_null(Socket),
+  case Response == <<"SUCCESS",0>> of
+      true -> ok;
+      false ->
+          io:fwrite("Error: ~s~n", [Response]),
+          {error, Response}
+  end.
+
+
+%% Receive data from Socket
+%%Once the query is sent, you can read the response object back from the server. The response object takes the following form:
+%%
+%% * The 8-byte unique query token
+%% * The length of the response, as a 4-byte little-endian integer
+%% * The JSON-encoded response
+recv(Socket) ->
+  {ok, ResponseLength} = gen_tcp:recv(Socket, 4),
+  {ok, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),Response.
+
+
 run() ->
   RethinkDBHost = "127.0.0.1", % to make it runnable on one machine
   RethinkSock   = connect(RethinkDBHost),
   handshake(RethinkSock, <<"">>),
+  query(RethinkSock),
   close(RethinkSock).
 
 read_until_null(Socket) ->
