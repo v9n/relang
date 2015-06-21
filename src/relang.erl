@@ -9,6 +9,16 @@
 %% From ql2.proto
 -define(RETHINKDB_VERSION, 32#723081e1).
 
+-include("ql2_pb.hrl").
+
+start() ->
+  application:start(relang),
+  ok.
+
+stop() ->
+  application:stop(relang),
+  ok.
+
 %% http://erlang.org/pipermail/erlang-questions/2004-December/013734.html
 connect(RethinkDBHost) ->
   {ok, Sock} = gen_tcp:connect(RethinkDBHost, 28015,
@@ -29,35 +39,49 @@ handshake(Sock, AuthKey) ->
   ok = gen_tcp:send(Sock, [<<16#7e6970c7:32/little-unsigned>>]),
   {ok, Response} = read_until_null(Sock),
   case Response == <<"SUCCESS",0>> of
-      true -> ok;
-      false ->
-          io:fwrite("Error: ~s~n", [Response]),
-          {error, Response}
+    true -> ok;
+    false ->
+      io:fwrite("Error: ~s~n", [Response]),
+      {error, Response}
   end.
 
 query(Socket) ->
   {A1, A2, A3} = now(),
-  Query = foo,
   random:seed(A1, A2, A3),
   Token = random:uniform(18446744073709551616),
   io:format("QueryToken = ~p~n", [Token]),
-  ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
-  ok = gen_tcp:send(Socket, [<<3:32/little-unsigned>>]),
-  
-  {Result, Code} = gen_tcp:send(Socket, [Query]),
-  case Result of
-    ok -> ok;
-    error ->
-      io:fwrite("Error: ~s ~n", [Code]),
-      {error, Code}
-  end,
+  Query = #query {
+             type = 'START',
+             query = foo,
+             token = Token,
+             global_optargs = [ #query_assocpair {
+                                   key = <<"db">>,
+                                   val = #term {
+                                            type = 'DATUM',
+                                            datum = 4
+                                           }
+                                  }]
+            },
+  Iolist = ql2_pb:encode_query(Query),
+  Length = iolist_size(Iolist),
+  ok     = gen_tcp:send(Socket, [<<Length:32/little-unsigned>>, Iolist]),
+  %%ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
+  %%ok = gen_tcp:send(Socket, [<<3:32/little-unsigned>>]),
+
+  %{Result, Code} = gen_tcp:send(Socket, [Query]),
+  %case Result of
+  %  ok -> ok;
+  %  error ->
+  %    io:fwrite("Error: ~s ~n", [Code]),
+  %    {error, Code}
+  %end,
 
   {ok, Response} = read_until_null(Socket),
   case Response == <<"SUCCESS",0>> of
-      true -> ok;
-      false ->
-          io:fwrite("Error: ~s~n", [Response]),
-          {error, Response}
+    true -> ok;
+    false ->
+      io:fwrite("Error: ~s~n", [Response]),
+      {error, Response}
   end.
 
 
@@ -80,22 +104,22 @@ run() ->
   close(RethinkSock).
 
 read_until_null(Socket) ->
-    read_until_null(Socket, []).
+  read_until_null(Socket, []).
 
 read_until_null(Socket, Acc) ->
-    %%{ok, Response} = gen_tcp:recv(Socket, 0),
-    case gen_tcp:recv(Socket, 0) of
-      {error, OtherSendError} ->
-        io:format("Some other error on socket (~p), closing", [OtherSendError]),
-        %%Client ! {self(),{error_sending, OtherSendError}},
-        gen_tcp:close(Socket);
-      {ok, Response} ->
-        Result = [Acc, Response],
-        case is_null_terminated(Response) of
-            true -> {ok, iolist_to_binary(Result)};
-            false -> read_until_null(Socket, Result)
-        end
-    end.
+  %%{ok, Response} = gen_tcp:recv(Socket, 0),
+  case gen_tcp:recv(Socket, 0) of
+    {error, OtherSendError} ->
+      io:format("Some other error on socket (~p), closing", [OtherSendError]),
+      %%Client ! {self(),{error_sending, OtherSendError}},
+      gen_tcp:close(Socket);
+    {ok, Response} ->
+      Result = [Acc, Response],
+      case is_null_terminated(Response) of
+        true -> {ok, iolist_to_binary(Result)};
+        false -> read_until_null(Socket, Result)
+      end
+  end.
 
 is_null_terminated(B) ->
-    binary:at(B, iolist_size(B) - 1) == 0.
+  binary:at(B, iolist_size(B) - 1) == 0.
