@@ -45,29 +45,55 @@ handshake(Sock, AuthKey) ->
       {error, Response}
   end.
 
+build_term_query(Query) ->
+  {Type, Args} = Query,
+  #term {
+     type = Type
+    }.
+
 query(Socket) ->
   {A1, A2, A3} = now(),
   random:seed(A1, A2, A3),
-  Token = random:uniform(18446744073709551616),
+  %%Token = random:uniform(18446744073709551616),
+  Token = random:uniform(3709551616),
   io:format("QueryToken = ~p~n", [Token]),
   Query = #query {
              type = 'START',
-             query = foo,
+             query = [{db, <<"db">>}, {table_list}],
              token = Token,
              global_optargs = [ #query_assocpair {
                                    key = <<"db">>,
                                    val = #term {
-                                            type = 'DATUM',
-                                            datum = 4
+                                            type = 'DB',
+                                            args = #term {
+                                                      type = 'DATUM',
+                                                      datum = #datum {
+                                                                 type = 'R_STR',
+                                                                 r_str = <<"test">>
+                                                                }
+                                                     }
                                            }
                                   }]
             },
-  Iolist = ql2_pb:encode_query(Query),
+  %Iolist2 = ql2_pb:encode_query(Query),
+  Query2  = #query {
+               query = #term {
+                          type = 'DB_LIST'
+                         },
+               type = 'START',
+               token = Token
+              },
+  Iolist  = ql2_pb:encode_query(Query2),
   Length = iolist_size(Iolist),
+  ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
   ok     = gen_tcp:send(Socket, [<<Length:32/little-unsigned>>, Iolist]),
   %%ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
   %%ok = gen_tcp:send(Socket, [<<3:32/little-unsigned>>]),
 
+  {ok, Response} = recv(Socket),
+  %%fmt:fwrite("Result: ~s ~n", [Response]),
+  io:format(Response),
+  Response
   %{Result, Code} = gen_tcp:send(Socket, [Query]),
   %case Result of
   %  ok -> ok;
@@ -75,14 +101,7 @@ query(Socket) ->
   %    io:fwrite("Error: ~s ~n", [Code]),
   %    {error, Code}
   %end,
-
-  {ok, Response} = read_until_null(Socket),
-  case Response == <<"SUCCESS",0>> of
-    true -> ok;
-    false ->
-      io:fwrite("Error: ~s~n", [Response]),
-      {error, Response}
-  end.
+  .
 
 
 %% Receive data from Socket
@@ -93,8 +112,13 @@ query(Socket) ->
 %% * The JSON-encoded response
 recv(Socket) ->
   {ok, ResponseLength} = gen_tcp:recv(Socket, 4),
-  {ok, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),Response.
-
+  {ResultCode, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),
+  case ResultCode of
+    ok -> {ok, Response};
+    error ->
+      io:fwrite("Error ~s ~n", [Response]),
+      {error, Response}
+  end.
 
 run() ->
   RethinkDBHost = "127.0.0.1", % to make it runnable on one machine
