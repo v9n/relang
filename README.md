@@ -5,6 +5,16 @@ RethinkDB driver in Erlang
 
 Learn Erlang
 
+# Using
+
+```
+rebar get-deps
+rebar compile
+cd ebin
+erl
+relang:run()
+```
+
 # API
 
 ```Erlang
