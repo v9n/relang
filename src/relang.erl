@@ -3,6 +3,10 @@
 -author(kureikain).
 -email("kurei@axcoto.com").
 
+-type document() :: {[keyvalue()]}.
+-type keyvalue() :: {binary(), json_term()}.
+-type json_term() :: null | boolean() | number() | binary() | document() | [json_term()].
+
 %%-export([connect/1]).
 -compile(export_all). %% replace with -export() later, for God's sake!
 
@@ -77,16 +81,21 @@ query(Socket) ->
             },
   %Iolist2 = ql2_pb:encode_query(Query),
   Query2  = #query {
+               type = 'START',
                query = #term {
                           type = 'DB_LIST'
                          },
-               type = 'START',
-               token = Token
+               global_optargs = []
+               %%token = Token
               },
-  Iolist  = ql2_pb:encode_query(Query2),
+  %%Iolist  = ql2_pb:encode_query([1,[60,[[14,["test"]],"tv_shows"]],{}]),
+  Iolist  = "[1,[60,[[14,[\"test\"]],\"tv_shows\"]],{}]",
   Length = iolist_size(Iolist),
+  io:format("Query= ~p~n", [Iolist]),
+  io:format("Length: ~p ~n", [Length]),
   ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
-  ok     = gen_tcp:send(Socket, [<<Length:32/little-unsigned>>, Iolist]),
+  ok = gen_tcp:send(Socket, [<<Length:32/little-unsigned>>]),
+  ok = gen_tcp:send(Socket, [Iolist]),
   %%ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
   %%ok = gen_tcp:send(Socket, [<<3:32/little-unsigned>>]),
 
