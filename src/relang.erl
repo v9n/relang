@@ -40,7 +40,12 @@ handshake(Sock, AuthKey) ->
   %%ok = gen_tcp:send(Sock, binary:encode_unsigned(16#0)),
   %%ok = gen_tcp:send(Sock, binary:encode_unsigned(16#0)),
   %%ok = gen_tcp:send(Sock, binary:encode_unsigned(16#7e6970c7)),
-  ok = gen_tcp:send(Sock, [<<16#7e6970c7:32/little-unsigned>>]),
+  
+  % Using JSON
+  %ok = gen_tcp:send(Sock, [<<16#7e6970c7:32/little-unsigned>>]),
+  %Using protobuf
+  ok = gen_tcp:send(Sock, [<<16#271ffc41:32/little-unsigned>>]),
+
   {ok, Response} = read_until_null(Sock),
   case Response == <<"SUCCESS",0>> of
     true -> ok;
@@ -83,24 +88,37 @@ query(Socket) ->
   Query2  = #query {
                type = 'START',
                query = #term {
-                          type = 'DB_LIST'
-                         },
-               global_optargs = []
+                                    type = 'DATUM',
+                                    datum = #datum {
+                                              type = 'R_STR', r_str = 'DB_LIST'
+                                              },
+                          args = []
+                       }
                %%token = Token
               },
-  %%Iolist  = ql2_pb:encode_query([1,[60,[[14,["test"]],"tv_shows"]],{}]),
-  Iolist  = "[1,[60,[[14,[\"test\"]],\"tv_shows\"]],{}]",
+  %Iolist  = ql2_pb:encode_query({query, 1, {term, <<59>>, undefined, [], undefined}, false,  false, undefined, undefined}),
+  io:format("Query2 = ~p ~n", [Query2]),
+  %io:format("TYpe = ~s ~n", [Query2.type]),
+  %Iolist  = ql2_pb:encode_query(Query2),
+  %Iolist  = "[1,[60,[[14,[\"test\"]],\"tv_shows\"]],{}]", create table
+  Iolist  = "[1,[59,[]],{}]", % list db 
   Length = iolist_size(Iolist),
   io:format("Query= ~p~n", [Iolist]),
   io:format("Length: ~p ~n", [Length]),
-  ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
-  ok = gen_tcp:send(Socket, [<<Length:32/little-unsigned>>]),
-  ok = gen_tcp:send(Socket, [Iolist]),
-  %%ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
-  %%ok = gen_tcp:send(Socket, [<<3:32/little-unsigned>>]),
+
+  %ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>]),
+  %ok = gen_tcp:send(Socket, [<<Length:32/little-unsigned>>]),
+  %ok = gen_tcp:send(Socket, [Iolist]),
+
+  case gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]) of
+    ok -> ok;
+    {error, Reason} ->
+      io:fwrite("Got Error when sedning query: ~s ~n", [Reason]),
+      {error, Reason}
+  end,
 
   {ok, Response} = recv(Socket),
-  %%fmt:fwrite("Result: ~s ~n", [Response]),
+  %fmt:fwrite("Result: ~s ~n", [Response]),
   io:format(Response),
   Response
   %{Result, Code} = gen_tcp:send(Socket, [Query]),
@@ -120,12 +138,15 @@ query(Socket) ->
 %% * The length of the response, as a 4-byte little-endian integer
 %% * The JSON-encoded response
 recv(Socket) ->
-  {ok, ResponseLength} = gen_tcp:recv(Socket, 4),
+  {RecvResultCode, ResponseLength} = gen_tcp:recv(Socket, 4),
+
+  io:fwrite("ResponseLengh ~s ~n", [ResponseLength]),
+
   {ResultCode, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),
   case ResultCode of
     ok -> {ok, Response};
     error ->
-      io:fwrite("Error ~s ~n", [Response]),
+      io:fwrite("Got Error ~s ~n", [Response]),
       {error, Response}
   end.
 
