@@ -5,53 +5,113 @@
 
 -compile(export_all). %% replace with -export() later, for God's sake!
 
-%build([]) ->
-%  [];
+make([Query]) when is_tuple(Query)->
+  {Tc, Ta} = build(Query),
+  [Tc,  ",[", Ta, "]"];
+
+make([Query | Qs]) ->
+  {Tc, Ta} = build(Query),
+  Parent = [Tc, ",[", Ta, "]"],
+  build(Qs, Parent)
+  .
+
+build([]) ->
+  "";
+
 build(Query) when is_tuple(Query) ->
   case Query of
     {Func} ->
       io:format("Sngle Tuple hello ~p ~n", [Func]),
-      T = ["[", apply(?MODULE, Func, []), ",[]]"]
+      T = apply(?MODULE, Func, [])
       ;
-    {Func, Arguments} ->
-      io:format("Sngle Tuple ~p ~ p lol~n", [Func, Arguments]),
-      T = ["[", apply(?MODULE, Func, Arguments), ",[]]"]
+    {Func, Arguments} when is_list(Arguments)->
+      io:format("Sngle Tuple ~p ~p lol~n", [Func, Arguments]),
+      T = apply(?MODULE, Func, Arguments);
+    {Func, Arguments} when not is_list(Arguments)->
+      io:format("Sngle Tuple ~p ~p lol~n", [Func, [Arguments]]),
+      T = apply(?MODULE, Func, [Arguments])
+
   end,
   io:format("Single Return ~p ~n", [T]),
   T
+.
+
+build([], Parent) ->
+  Parent
+  %["[", Tc, ",[" ] ++ [""] ++ ["],", Ta, "]"]
   ;
-build([Query , Qs]) ->
+build(Query, Parent) when is_tuple(Query)->
+  {Tc, Ta} = build(Query),
+  [Tc, ",[[" ] ++ Parent ++ ["],", Ta, "]"]
+  ;
+build([Query | Qs], Parent) ->
   io:format("Q = ~p ~n", [Query]),
   io:format("Qs = ~p ~n", [Qs]),
 
-  case Query of
-    {Func} ->
-      io:format("F = ~p ~n", [Func]),
-      T = ["[", apply(?MODULE, Func), ",[]]"]
-      ;
-    {Func, Arguments} ->
-      io:format("F = ~p~p ~n", [Func, Arguments]),
-      T = ["[", apply(?MODULE, Func, Arguments), ",[]]"]
-  end,
-  io:format("T = ~p ~n", [T]),
-  ["[", build(Qs), T]
-  %"[59,[]]".
+  {Tc, Ta} = build(Query),
+
+  Node = [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, "", "]" ],
+
+  io:format("Node = ~p ~n", [Node]),
+  build(Qs, Node)
+
+  %case Query of
+  %  {Func} ->
+  %    io:format("F = ~p ~n", [Func]),
+  %    T = apply(?MODULE, Func), ",[]",
+  %    {Tc, Ta} = T,
+  %    io:format("T = ~p ~n", [T]),
+  %    %{Bc, Ba} = build(Qs),
+  %    [
+  %     Tc,
+  %     build(Qs),
+  %     Ta
+  %    ];
+  %  {Func, Arguments} ->
+  %    io:format("F = ~p~p ~n", [Func, Arguments]),
+  %    T = apply(?MODULE, Func, Arguments),
+  %    {Tc,Ta} = T,
+  %    %{Bc, Ba, Bo} = build(Qs),
+  %    [
+  %     Tc,
+  %     [build(Qs)],
+  %     Ta
+  %    ]
+  %end;  
   .
 
 db(DbName) ->
-  [
-   "[",
-   14,
-   "[", DbName, "]",
-   "]"
-  ].
+  {
+   "14",
+   ["\"", DbName, "\""]
+  }.
 
 db_list() ->
-  ["[", 59 , ",[]]"].
+  {
+    "59",
+    [""]
+  }.
 
 table_list() ->
-  [
-   "[", 62, "]"
-  ].
+  {
+   "62",
+   [""]
+  }.
 
+table(Name) ->
+  {
+   "15",
+   ["\"", Name, "\""]
+  }.
 
+table_create(Name) ->
+  {
+   "60",
+   ["\"", Name, "\""]
+  }.
+
+insert(Item) ->
+  {
+   "56",
+   Item
+  }.
