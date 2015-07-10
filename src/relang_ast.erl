@@ -42,42 +42,27 @@ build([], Parent) ->
   ;
 build(Query, Parent) when is_tuple(Query)->
   {Tc, Ta} = build(Query),
-  [Tc, ",[[" ] ++ Parent ++ ["],", Ta, "]"]
+  case Ta of
+    [""] ->
+      [Tc, ",[[" ] ++ Parent ++ ["]", Ta, "]"];
+    _ ->
+      [Tc, ",[[" ] ++ Parent ++ ["],", Ta, "]"]
+  end
   ;
 build([Query | Qs], Parent) ->
   io:format("Q = ~p ~n", [Query]),
   io:format("Qs = ~p ~n", [Qs]),
 
   {Tc, Ta} = build(Query),
-
-  Node = [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, "", "]" ],
+  Node = case Ta of
+    [""] ->
+      [Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, "", "]" ];
+    _ ->
+      [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, "", "]" ]
+  end,
 
   io:format("Node = ~p ~n", [Node]),
   build(Qs, Node)
-
-  %case Query of
-  %  {Func} ->
-  %    io:format("F = ~p ~n", [Func]),
-  %    T = apply(?MODULE, Func), ",[]",
-  %    {Tc, Ta} = T,
-  %    io:format("T = ~p ~n", [T]),
-  %    %{Bc, Ba} = build(Qs),
-  %    [
-  %     Tc,
-  %     build(Qs),
-  %     Ta
-  %    ];
-  %  {Func, Arguments} ->
-  %    io:format("F = ~p~p ~n", [Func, Arguments]),
-  %    T = apply(?MODULE, Func, Arguments),
-  %    {Tc,Ta} = T,
-  %    %{Bc, Ba, Bo} = build(Qs),
-  %    [
-  %     Tc,
-  %     [build(Qs)],
-  %     Ta
-  %    ]
-  %end;  
   .
 
 db(DbName) ->
