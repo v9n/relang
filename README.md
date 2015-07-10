@@ -3,23 +3,33 @@ RethinkDB driver in Erlang
 
 # Why
 
-Learn Erlang
+Learn Erlang. 
 
-# Using
+# Credit
+
+My implementation is very simple and maybe buggy but I inspied by
+[https://github.com/taybin/lethink](https://github.com/taybin/lethink)
+especially on the query syntax.
+
+# Compile
 
 ```
 rebar get-deps
 rebar compile
-cd ebin
-erl
-relang:run()
+erl -pa ebin -pa deps/protobuffs/ebin
 ```
 
-# API
+# Using
 
 ```Erlang
+
 %% Creation conection
-relang:run().
-relang:use().
-relang:query()
+Connection = relang:connect("127.0.0.1")
+
+relang:r(Connection, [{db_create, "db1}])
+relang:r(Connection, [{db_list}])
+relang:r(Connection, [{db, ["test"]}, {table_list}])
+relang:r(Connection, [{db, ["test"]}, {table_create, ["t1"]}])
+relang:r(Connection, [{db, ["test"]}, {table, ["t4"]}, {insert, ["{\"name\":\"vinh\",\"age\":27}"]}]).
+
 ```
