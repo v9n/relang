@@ -59,9 +59,7 @@ query(Socket, RawQuery) ->
   random:seed(A1, A2, A3),
   Token = random:uniform(3709551616),
   io:format("QueryToken = ~p~n", [Token]),
-  %RawQuery2 = [{db_list}, ],
-  RawQuery2 = [{db, [<<"test">>]}, {table_list}],
-  Query = relang_ast:build(RawQuery2),
+  Query = relang_ast:make(RawQuery),
 
   %Query = #query {
   %           type = 'START',
@@ -99,7 +97,7 @@ query(Socket, RawQuery) ->
   %Iolist  = ql2_pb:encode_query({query, 1, {term, <<59>>, undefined, [], undefined}, false,  false, undefined, undefined}),
   io:format("Query = ~p ~n", [Query]),
   %Iolist  = "[1,[60,[[14,[\"test\"]],\"tv_shows\"]],{}]", create table
-  Iolist  = ["[1,", Query, ",{}]"], % list db 
+  Iolist  = ["[1,["] ++ Query ++ ["],{}]"], % list db 
   Length = iolist_size(Iolist),
   io:format("Query= ~p~n", [Iolist]),
   io:format("Length: ~p ~n", [Length]),
@@ -115,10 +113,18 @@ query(Socket, RawQuery) ->
       {error, Reason}
   end,
 
-  {ok, Response} = recv(Socket),
+  case recv(Socket) of
+    {ok, Response} ->
+      io:format("Ok "),
+      io:format(Response),
+      Response
+      ;
+    {error, ErrReason} ->
+      io:fwrite("Got Error when receving: ~s ~n", [ErrReason]),
+      ErrReason
+  end
+
   %fmt:fwrite("Result: ~s ~n", [Response]),
-  io:format(Response),
-  Response
   %{Result, Code} = gen_tcp:send(Socket, [Query]),
   %case Result of
   %  ok -> ok;
@@ -136,9 +142,16 @@ query(Socket, RawQuery) ->
 %% * The length of the response, as a 4-byte little-endian integer
 %% * The JSON-encoded response
 recv(Socket) ->
+  case gen_tcp:recv(Socket, 8) of
+    {ok, Token} ->
+      io:format("Get back token ~p ~n", [Token]);
+    {error, Reason} ->
+      io:format("Fail to parse token")
+  end,
+
   {RecvResultCode, ResponseLength} = gen_tcp:recv(Socket, 4),
 
-  io:fwrite("ResponseLengh ~s ~n", [ResponseLength]),
+  io:fwrite("ResponseLengh ~p ~n", [ResponseLength]),
 
   {ResultCode, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),
   case ResultCode of
@@ -152,7 +165,22 @@ run() ->
   RethinkDBHost = "127.0.0.1", % to make it runnable on one machine
   RethinkSock   = connect(RethinkDBHost),
   handshake(RethinkSock, <<"">>),
-  query(RethinkSock, [{db, [<<"tests">>]}, {table_list, []}]),
+
+  Qlist = [{db_list}],
+  Qtlist = [{db, [<<"test">>]}, {table_list}],
+  Qtcreate = [{db, [<<"test">>]}, {table_create, [<<"kids2">>]}],
+  Qtinsert = [{db, [<<"test">>]}, {table, <<"kids">>}, {insert, [<<"{\"name\":\"item87vinhtestinerlang\"}">>]} ],
+
+  io:format("LIST DB ~n======~n"),
+  query(RethinkSock, Qlist),
+
+  io:format("LIST Table ~n======~n"),
+  query(RethinkSock, Qtlist),
+  io:format("Create  ~n======~n"),
+  query(RethinkSock, Qtcreate),
+  io:format("Insert ~n======~n"),
+  query(RethinkSock, Qtinsert),
+
   close(RethinkSock).
 
 read_until_null(Socket) ->
