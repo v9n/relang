@@ -89,14 +89,16 @@ query(Socket, RawQuery) ->
 recv(Socket) ->
   case gen_tcp:recv(Socket, 8) of
     {ok, Token} ->
+      <<K:64/little-unsigned>> = Token,
+      io:format("Get back token ~p ~n", [K]),
       io:format("Get back token ~p ~n", [Token]);
     {error, Reason} ->
       io:format("Fail to parse token")
   end,
 
   {RecvResultCode, ResponseLength} = gen_tcp:recv(Socket, 4),
-
-  io:fwrite("ResponseLengh ~p ~n", [ResponseLength]),
+  <<Rs:32/little-unsigned>> = ResponseLength,
+  io:format("ResponseLengh ~p ~n", [Rs]),
 
   {ResultCode, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),
   case ResultCode of
