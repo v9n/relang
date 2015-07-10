@@ -45,6 +45,9 @@ handshake(Sock, AuthKey) ->
       {error, Response}
   end.
 
+r(Socket, RawQuery) ->
+  query(Socket, RawQuery).
+
 query(Socket, RawQuery) ->
   {A1, A2, A3} = now(),
   random:seed(A1, A2, A3),
