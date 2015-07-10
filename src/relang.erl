@@ -42,9 +42,9 @@ handshake(Sock, AuthKey) ->
   %%ok = gen_tcp:send(Sock, binary:encode_unsigned(16#7e6970c7)),
   
   % Using JSON
-  %ok = gen_tcp:send(Sock, [<<16#7e6970c7:32/little-unsigned>>]),
+  ok = gen_tcp:send(Sock, [<<16#7e6970c7:32/little-unsigned>>]),
   %Using protobuf
-  ok = gen_tcp:send(Sock, [<<16#271ffc41:32/little-unsigned>>]),
+  %ok = gen_tcp:send(Sock, [<<16#271ffc41:32/little-unsigned>>]),
 
   {ok, Response} = read_until_null(Sock),
   case Response == <<"SUCCESS",0>> of
@@ -54,54 +54,52 @@ handshake(Sock, AuthKey) ->
       {error, Response}
   end.
 
-build_term_query(Query) ->
-  {Type, Args} = Query,
-  #term {
-     type = Type
-    }.
-
-query(Socket) ->
+query(Socket, RawQuery) ->
   {A1, A2, A3} = now(),
   random:seed(A1, A2, A3),
-  %%Token = random:uniform(18446744073709551616),
   Token = random:uniform(3709551616),
   io:format("QueryToken = ~p~n", [Token]),
-  Query = #query {
-             type = 'START',
-             query = [{db, <<"db">>}, {table_list}],
-             token = Token,
-             global_optargs = [ #query_assocpair {
-                                   key = <<"db">>,
-                                   val = #term {
-                                            type = 'DB',
-                                            args = #term {
-                                                      type = 'DATUM',
-                                                      datum = #datum {
-                                                                 type = 'R_STR',
-                                                                 r_str = <<"test">>
-                                                                }
-                                                     }
-                                           }
-                                  }]
-            },
+  %RawQuery2 = [{db_list}, ],
+  RawQuery2 = [{db, [<<"test">>]}, {table_list}],
+  Query = relang_ast:build(RawQuery2),
+
+  %Query = #query {
+  %           type = 'START',
+  %           query = [{db, <<"db">>}, {table_list}],
+  %           token = Token,
+  %           global_optargs = [ #query_assocpair {
+  %                                 key = <<"db">>,
+  %                                 val = #term {
+  %                                          type = 'DB',
+  %                                          args = #term {
+  %                                                    type = 'DATUM',
+  %                                                    datum = #datum {
+  %                                                               type = 'R_STR',
+  %                                                               r_str = <<"test">>
+  %                                                              }
+  %                                                   }
+  %                                         }
+  %                                }]
+  %          },
   %Iolist2 = ql2_pb:encode_query(Query),
   Query2  = #query {
                type = 'START',
                query = #term {
+                          type = #term {
                                     type = 'DATUM',
                                     datum = #datum {
-                                              type = 'R_STR', r_str = 'DB_LIST'
+                                              type = 'R_STR', r_str = <<"DB_LIST">>
                                               },
+                                    args = []
+                                   },
                           args = []
-                       }
-               %%token = Token
+                       },
+               token = Token
               },
   %Iolist  = ql2_pb:encode_query({query, 1, {term, <<59>>, undefined, [], undefined}, false,  false, undefined, undefined}),
-  io:format("Query2 = ~p ~n", [Query2]),
-  %io:format("TYpe = ~s ~n", [Query2.type]),
-  %Iolist  = ql2_pb:encode_query(Query2),
+  io:format("Query = ~p ~n", [Query]),
   %Iolist  = "[1,[60,[[14,[\"test\"]],\"tv_shows\"]],{}]", create table
-  Iolist  = "[1,[59,[]],{}]", % list db 
+  Iolist  = ["[1,", Query, ",{}]"], % list db 
   Length = iolist_size(Iolist),
   io:format("Query= ~p~n", [Iolist]),
   io:format("Length: ~p ~n", [Length]),
@@ -154,7 +152,7 @@ run() ->
   RethinkDBHost = "127.0.0.1", % to make it runnable on one machine
   RethinkSock   = connect(RethinkDBHost),
   handshake(RethinkSock, <<"">>),
-  query(RethinkSock),
+  query(RethinkSock, [{db, [<<"tests">>]}, {table_list, []}]),
   close(RethinkSock).
 
 read_until_null(Socket) ->
