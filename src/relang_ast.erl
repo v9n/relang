@@ -65,6 +65,13 @@ build([Query | Qs], Parent) ->
   build(Qs, Node)
   .
 
+db_create(Name) ->
+  {
+   "57",
+   ["\"", Name, "\""]
+  }
+.
+
 db(DbName) ->
   {
    "14",
