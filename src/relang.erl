@@ -63,22 +63,21 @@ query(Socket, RawQuery) ->
   case gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]) of
     ok -> ok;
     {error, Reason} ->
-      io:fwrite("Got Error when sedning query: ~s ~n", [Reason]),
+      io:fwrite("Got Error when sending query: ~s ~n", [Reason]),
       {error, Reason}
   end,
 
   case recv(Socket) of
-    {ok, Response} ->
+    {ok, R} ->
       io:format("Ok "),
-      io:format(Response),
-      Response
+      io:format(R),
+      proplists:get_value(<<"r">>, jsx:decode(R))
       ;
     {error, ErrReason} ->
       io:fwrite("Got Error when receving: ~s ~n", [ErrReason]),
       ErrReason
   end
   .
-
 
 %% Receive data from Socket
 %%Once the query is sent, you can read the response object back from the server. The response object takes the following form:
@@ -99,6 +98,7 @@ recv(Socket) ->
   {RecvResultCode, ResponseLength} = gen_tcp:recv(Socket, 4),
   <<Rs:32/little-unsigned>> = ResponseLength,
   io:format("ResponseLengh ~p ~n", [Rs]),
+  io:format("ResponseLengh ~p ~n", [ResponseLength]),
 
   {ResultCode, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),
   case ResultCode of
@@ -116,16 +116,19 @@ run() ->
   Qtlist = [{db, [<<"test">>]}, {table_list}],
   Qtcreate = [{db, [<<"test">>]}, {table_create, [<<"kids2">>]}],
   Qtinsert = [{db, [<<"test">>]}, {table, <<"kids">>}, {insert, [<<"{\"name\":\"item87vinhtestinerlang\"}">>]} ],
+  Qfetchall = [{db, [<<"test">>]}, {table, <<"tv_shows">>} ],
 
   io:format("LIST DB ~n======~n"),
-  query(RethinkSock, Qlist),
+  %query(RethinkSock, Qlist),
 
-  io:format("LIST Table ~n======~n"),
-  query(RethinkSock, Qtlist),
-  io:format("Create  ~n======~n"),
-  query(RethinkSock, Qtcreate),
+  %io:format("LIST Table ~n======~n"),
+  %query(RethinkSock, Qtlist),
+  %io:format("Create  ~n======~n"),
+  %query(RethinkSock, Qtcreate),
   io:format("Insert ~n======~n"),
-  query(RethinkSock, Qtinsert),
+  %query(RethinkSock, Qtinsert),
+
+  query(RethinkSock, Qfetchall),
 
   close(RethinkSock).
 

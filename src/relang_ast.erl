@@ -50,9 +50,6 @@ build(Query, Parent) when is_tuple(Query)->
   end
   ;
 build([Query | Qs], Parent) ->
-  io:format("Q = ~p ~n", [Query]),
-  io:format("Qs = ~p ~n", [Qs]),
-
   {Tc, Ta} = build(Query),
   Node = case Ta of
     [""] ->
@@ -61,7 +58,6 @@ build([Query | Qs], Parent) ->
       [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, "", "]" ]
   end,
 
-  io:format("Node = ~p ~n", [Node]),
   build(Qs, Node)
   .
 
