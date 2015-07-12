@@ -172,6 +172,8 @@ run() ->
   Qfetchall = [{db, [<<"test">>]}, {table, <<"tv_shows">>} ],
   Qfchange = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {changes, fun(Item) -> io:format(Item) end} ],
 
+  Qtfilter = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {filter, [{<<"age">>, 30}]}],
+
   io:format("LIST DB ~n======~n"),
   query(RethinkSock, Qlist),
 
@@ -186,8 +188,14 @@ run() ->
 
   query(RethinkSock, Qfetchall),
 
+
+  io:format("Filter ~n======~n"),
+  query(RethinkSock, Qtfilter),
+
   io:format("Changefeed ~n======~n"),
-  query(RethinkSock, Qfchange)
+  query(RethinkSock, Qfchange),
+
+  io:format("End")
   .
 
 read_until_null(Socket) ->

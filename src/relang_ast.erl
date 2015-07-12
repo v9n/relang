@@ -44,18 +44,18 @@ build(Query, Parent) when is_tuple(Query)->
   {Tc, Ta, To} = build(Query),
   case Ta of
     [""] ->
-      [Tc, ",[[" ] ++ Parent ++ ["]", Ta, "]", To];
+      [Tc, ",[[" ] ++ Parent ++ ["]", Ta, To, "]"];
     _ ->
-      [Tc, ",[[" ] ++ Parent ++ ["],", Ta, "]", To]
+      [Tc, ",[[" ] ++ Parent ++ ["],", Ta, To, "]"]
   end
   ;
 build([Query | Qs], Parent) ->
   {Tc, Ta, To} = build(Query),
   Node = case Ta of
     [""] ->
-      [Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, "", "]", To];
+      [Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, To, "]"];
     _ ->
-      [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, "", "]", To]
+      [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, To, "]", To]
   end,
 
   build(Qs, Node)
@@ -123,8 +123,15 @@ changes(Function) ->
   .
 
 filter(F) when is_tuple(F) ->
+  filter([F]);
+
+filter(F) when is_list(F) ->
+  io:fwrite("F= ~p ~n",[F]),
+  io:fwrite("F= ~p ~n", [jsx:encode(F)]),
   {
-    
+    "39",
+    [""],
+    [",", jsx:encode(F)]
   };
 filter(F) when is_function(F) ->
   {
