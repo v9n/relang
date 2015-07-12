@@ -33,3 +33,9 @@ relang:r(Connection, [{db, ["test"]}, {table_create, ["t1"]}])
 relang:r(Connection, [{db, ["test"]}, {table, ["t4"]}, {insert, ["{\"name\":\"vinh\",\"age\":27}"]}]).
 
 ```
+
+## Changefeeds
+
+```
+relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {change, fun(Item) -> io:format(Item) end}).
+```

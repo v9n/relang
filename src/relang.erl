@@ -32,7 +32,6 @@ close(Sock) ->
 handshake(Sock, AuthKey) ->
   KeyLength = iolist_size(AuthKey),
   ok = gen_tcp:send(Sock, binary:encode_unsigned(16#400c2d20, little)),
-  %%ok = gen_tcp:send(Sock, [<<KeyLength:32/little-unsigned>>, AuthKey]),
   ok = gen_tcp:send(Sock, [<<0:32/little-unsigned>>]),
   % Using JSON Protocol
   ok = gen_tcp:send(Sock, [<<16#7e6970c7:32/little-unsigned>>]),
@@ -53,7 +52,9 @@ query(Socket, RawQuery) ->
   random:seed(A1, A2, A3),
   Token = random:uniform(3709551616),
   io:format("QueryToken = ~p~n", [Token]),
+
   Query = relang_ast:make(RawQuery),
+
   io:format("Query = ~p ~n", [Query]),
   Iolist  = ["[1,["] ++ Query ++ ["],{}]"], % list db 
   Length = iolist_size(Iolist),
@@ -71,7 +72,16 @@ query(Socket, RawQuery) ->
     {ok, R} ->
       io:format("Ok "),
       io:format(R),
-      proplists:get_value(<<"r">>, jsx:decode(R))
+      Rterm = jsx:decode(R),
+      proplists:get_value(<<"r">>, Rterm),
+      case proplists:get_value(<<"t">>, Rterm) of
+        1 -> io:format("atom response");
+        2 -> io:format("SUCCESS_SEQUENCE");
+        3 ->
+          io:format("SUCCESS_PARTIAL <<< Get more data"),
+          stream_poll(Socket, Token)
+      end
+      % So we get back a stream, let continous pull query
       ;
     {error, ErrReason} ->
       io:fwrite("Got Error when receving: ~s ~n", [ErrReason]),
@@ -79,6 +89,14 @@ query(Socket, RawQuery) ->
   end
   .
 
+stream_poll(Socket, Token) ->
+  Iolist = ["[2]"],
+  Length = iolist_size(Iolist),
+  ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]),
+  {ok, R} = recv(Socket),
+  Rterm = jsx:decode(R),
+  io:format(Rterm)
+  .
 %% Receive data from Socket
 %%Once the query is sent, you can read the response object back from the server. The response object takes the following form:
 %%
@@ -102,7 +120,8 @@ recv(Socket) ->
 
   {ResultCode, Response} = gen_tcp:recv(Socket, binary:decode_unsigned(ResponseLength, little)),
   case ResultCode of
-    ok -> {ok, Response};
+    ok ->
+      {ok, Response};
     error ->
       io:fwrite("Got Error ~s ~n", [Response]),
       {error, Response}
@@ -115,8 +134,13 @@ run() ->
   Qlist = [{db_list}],
   Qtlist = [{db, [<<"test">>]}, {table_list}],
   Qtcreate = [{db, [<<"test">>]}, {table_create, [<<"kids2">>]}],
-  Qtinsert = [{db, [<<"test">>]}, {table, <<"kids">>}, {insert, [<<"{\"name\":\"item87vinhtestinerlang\"}">>]} ],
+
+  %<<"{\"name\":\"item87vinhtestinerlang\"}">>
+  M = [{<<"name">>, <<"vinh">>}],
+  Qtinsert = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {insert, [jsx:encode(M)]} ],
+
   Qfetchall = [{db, [<<"test">>]}, {table, <<"tv_shows">>} ],
+  Qfchange = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {changes, fun(Item) -> io:format(Item) end} ],
 
   io:format("LIST DB ~n======~n"),
   %query(RethinkSock, Qlist),
@@ -125,10 +149,13 @@ run() ->
   %query(RethinkSock, Qtlist),
   %io:format("Create  ~n======~n"),
   %query(RethinkSock, Qtcreate),
-  io:format("Insert ~n======~n"),
+  %io:format("Insert ~n======~n"),
   %query(RethinkSock, Qtinsert),
+  
+  io:format("Changefeed ~n======~n"),
+  query(RethinkSock, Qfchange),
 
-  query(RethinkSock, Qfetchall),
+  %query(RethinkSock, Qfetchall),
 
   close(RethinkSock).
 
