@@ -73,13 +73,15 @@ query(Socket, RawQuery) ->
       io:format("Ok "),
       io:format(R),
       Rterm = jsx:decode(R),
-      proplists:get_value(<<"r">>, Rterm),
+      %proplists:get_value(<<"r">>, Rterm),
       case proplists:get_value(<<"t">>, Rterm) of
         1 -> io:format("atom response");
         2 -> io:format("SUCCESS_SEQUENCE");
         3 ->
           io:format("SUCCESS_PARTIAL <<< Get more data~n"),
-          spawn(stream_poll(Socket, Token))
+          Pid = spawn(?MODULE, stream_poll, [Socket, Token]),
+          io:format("Do something else here~n"),
+          {ok, {pid, Pid}, proplists:get_value(<<"r">>, Rterm)}
       end
       % So we get back a stream, let continous pull query
       ;
@@ -99,7 +101,7 @@ stream_poll(Socket, Token) ->
   Iolist = ["[2]"],
   Length = iolist_size(Iolist),
   io:format("Block socket <<< waiting for more data from stream~n"),
-  
+
   ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]),
   {ok, R} = recv(Socket),
   Rterm = jsx:decode(R),
