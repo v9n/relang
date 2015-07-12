@@ -75,19 +75,28 @@ query(Socket, RawQuery) ->
       Rterm = jsx:decode(R),
       %proplists:get_value(<<"r">>, Rterm),
       case proplists:get_value(<<"t">>, Rterm) of
-        1 -> io:format("atom response");
-        2 -> io:format("SUCCESS_SEQUENCE");
+        18 ->
+          io:format("Error"),
+          {error, proplists:get_value(<<"r">>, Rterm)};
+        1 ->
+          io:format("atom response"),
+          {ok, proplists:get_value(<<"r">>, Rterm)};
+        2 ->
+          io:format("SUCCESS_SEQUENCE"),
+          {ok, proplists:get_value(<<"r">>, Rterm)};
         3 ->
+          % So we get back a stream, let continous pull query
           io:format("SUCCESS_PARTIAL <<< Get more data~n"),
-          Pid = spawn(?MODULE, stream_poll, [Socket, Token]),
+
+          Recv = spawn(?MODULE, stream_recv, [Socket, Token]),
+          Pid = spawn(?MODULE, stream_poll, [{Socket, Token}, Recv]),
           io:format("Do something else here~n"),
           {ok, {pid, Pid}, proplists:get_value(<<"r">>, Rterm)}
       end
-      % So we get back a stream, let continous pull query
       ;
     {error, ErrReason} ->
       io:fwrite("Got Error when receving: ~s ~n", [ErrReason]),
-      ErrReason
+      {error, ErrReason}
   end
   .
 
@@ -97,7 +106,17 @@ stream_stop(Socket, Token) ->
   ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist])
   .
 
-stream_poll(Socket, Token) ->
+%% receive data from stream, then pass to other process
+stream_recv(Socket, Token) ->
+  receive
+    R ->
+      io:fwrite("Changefeed receive item: ~p ~n",[R])
+  end,
+  stream_recv(Socket, Token)
+  .
+
+%Continues getting data from stream
+stream_poll({Socket, Token}, PidCallback) ->
   Iolist = ["[2]"],
   Length = iolist_size(Iolist),
   io:format("Block socket <<< waiting for more data from stream~n"),
@@ -105,8 +124,8 @@ stream_poll(Socket, Token) ->
   ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]),
   {ok, R} = recv(Socket),
   Rterm = jsx:decode(R),
-  io:fwrite("Changefeed: ~p ~n",[proplists:get_value(<<"r">>, Rterm)]),
-  stream_poll(Socket, Token)
+  spawn(fun() -> PidCallback ! proplists:get_value(<<"r">>, Rterm) end),
+  stream_poll({Socket, Token}, PidCallback)
   .
 %% Receive data from Socket
 %%Once the query is sent, you can read the response object back from the server. The response object takes the following form:
@@ -154,21 +173,22 @@ run() ->
   Qfchange = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {changes, fun(Item) -> io:format(Item) end} ],
 
   io:format("LIST DB ~n======~n"),
-  %query(RethinkSock, Qlist),
+  query(RethinkSock, Qlist),
 
   %io:format("LIST Table ~n======~n"),
-  %query(RethinkSock, Qtlist),
+  query(RethinkSock, Qtlist),
+
   %io:format("Create  ~n======~n"),
-  %query(RethinkSock, Qtcreate),
+  query(RethinkSock, Qtcreate),
+
   %io:format("Insert ~n======~n"),
-  %query(RethinkSock, Qtinsert),
-  
+  query(RethinkSock, Qtinsert),
+
+  query(RethinkSock, Qfetchall),
+
   io:format("Changefeed ~n======~n"),
-  query(RethinkSock, Qfchange),
-
-  %query(RethinkSock, Qfetchall),
-
-  close(RethinkSock).
+  query(RethinkSock, Qfchange)
+  .
 
 read_until_null(Socket) ->
   read_until_null(Socket, []).

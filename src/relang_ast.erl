@@ -6,11 +6,11 @@
 -compile(export_all). %% replace with -export() later, for God's sake!
 
 make([Query]) when is_tuple(Query)->
-  {Tc, Ta} = build(Query),
+  {Tc, Ta, To} = build(Query),
   [Tc,  ",[", Ta, "]"];
 
 make([Query | Qs]) ->
-  {Tc, Ta} = build(Query),
+  {Tc, Ta, To} = build(Query),
   Parent = [Tc, ",[", Ta, "]"],
   build(Qs, Parent)
   .
@@ -41,74 +41,91 @@ build([], Parent) ->
   %["[", Tc, ",[" ] ++ [""] ++ ["],", Ta, "]"]
   ;
 build(Query, Parent) when is_tuple(Query)->
-  {Tc, Ta} = build(Query),
+  {Tc, Ta, To} = build(Query),
   case Ta of
     [""] ->
-      [Tc, ",[[" ] ++ Parent ++ ["]", Ta, "]"];
+      [Tc, ",[[" ] ++ Parent ++ ["]", Ta, "]", To];
     _ ->
-      [Tc, ",[[" ] ++ Parent ++ ["],", Ta, "]"]
+      [Tc, ",[[" ] ++ Parent ++ ["],", Ta, "]", To]
   end
   ;
 build([Query | Qs], Parent) ->
-  {Tc, Ta} = build(Query),
+  {Tc, Ta, To} = build(Query),
   Node = case Ta of
     [""] ->
-      [Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, "", "]" ];
+      [Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, "", "]", To];
     _ ->
-      [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, "", "]" ]
+      [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, "", "]", To]
   end,
 
   build(Qs, Node)
   .
 
+%%Detail implementation of API
 db_create(Name) ->
   {
    "57",
-   ["\"", Name, "\""]
+   ["\"", Name, "\""],
+   []
   }
 .
 
 db(DbName) ->
   {
    "14",
-   ["\"", DbName, "\""]
+   ["\"", DbName, "\""],
+   []
   }.
 
 db_list() ->
   {
     "59",
-    [""]
+    [""],
+    []
   }.
 
 table_list() ->
   {
    "62",
-   [""]
+   [""],
+    []
   }.
 
 table(Name) ->
   {
    "15",
-   ["\"", Name, "\""]
+   ["\"", Name, "\""],
+    []
   }.
 
 table_create(Name) ->
   {
    "60",
-   ["\"", Name, "\""]
+   ["\"", Name, "\""],
+    []
   }.
 
 insert(Item) ->
   {
    "56",
-   Item
+   Item,
+    []
   }.
 
 changes(Function) ->
   {
    "152",
-   [""]
+   [""],
+    []
   }
 
   %Function(F)
   .
+
+filter(F) when is_tuple(F) ->
+  {
+    
+  };
+filter(F) when is_function(F) ->
+  {
+  }.
