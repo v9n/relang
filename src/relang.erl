@@ -78,8 +78,8 @@ query(Socket, RawQuery) ->
         1 -> io:format("atom response");
         2 -> io:format("SUCCESS_SEQUENCE");
         3 ->
-          io:format("SUCCESS_PARTIAL <<< Get more data"),
-          stream_poll(Socket, Token)
+          io:format("SUCCESS_PARTIAL <<< Get more data~n"),
+          spawn(stream_poll(Socket, Token))
       end
       % So we get back a stream, let continous pull query
       ;
@@ -89,13 +89,22 @@ query(Socket, RawQuery) ->
   end
   .
 
+stream_stop(Socket, Token) ->
+  Iolist = ["[3]"],
+  Length = iolist_size(Iolist),
+  ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist])
+  .
+
 stream_poll(Socket, Token) ->
   Iolist = ["[2]"],
   Length = iolist_size(Iolist),
+  io:format("Block socket <<< waiting for more data from stream~n"),
+  
   ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]),
   {ok, R} = recv(Socket),
   Rterm = jsx:decode(R),
-  io:format(Rterm)
+  io:fwrite("Changefeed: ~p ~n",[proplists:get_value(<<"r">>, Rterm)]),
+  stream_poll(Socket, Token)
   .
 %% Receive data from Socket
 %%Once the query is sent, you can read the response object back from the server. The response object takes the following form:
