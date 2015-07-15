@@ -47,6 +47,8 @@ because they are a bit different.
 relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {change, fun(Item) -> io:format(Item) end}).
 ```
 
+  * Limit: Only a `change` command in the list
+
 ## Filter and row
 
 On the surface, filter looks like they are code that run on driver side,
@@ -62,6 +64,18 @@ relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {filter, [{<<"age">>, 30
 With functional style
 
 ```
+
+# This works now
+relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
+[<<"tv_shows">>]}, {filter, fun(X) -> relang:row(X, [{gt, [{<<"age">>,
+30}]}]) end}]).
+
+relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
+[<<"tv_shows">>]}, {filter, fun(X) -> relang:row(X, [{match,
+[{<<"name">>, <<"^k">>}]}]) end}]).
+
+
+# These are pending/change
 relang:r(C9, [{db, ["test"]}, {table, ["tv_shows"]}, {filter, fun(X) -> io:format("filter") end}]).
 
 relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {filter, func(X) ->
@@ -79,4 +93,10 @@ end}).
 relang:r(D1, [{db, ["test"]}, {table, ["tv_shows"]}, {filter, fun(X) ->
   relang:row(X, [{eq, <<"age">>, 30}])
 end}]).
+```
+
+# API
+
+```
+relang:r(relang:connect("127.0.0.1"), [{now}]).
 ```

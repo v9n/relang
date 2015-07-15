@@ -6,23 +6,14 @@
 -compile(export_all). %% replace with -export() later, for God's sake!
 
 make(Query) when is_tuple(Query)->
-  Q = build(Query),
-  jsx:encode(Q);
+  Q = build(Query);
 
 make([Query | Qs]) ->
   Parent = build(Query),
   Q = build(Qs, Parent),
   io:fwrite("Q= ~p", [Q]),
   io:fwrite("Q2= ~p", [Q]),
-
-  %bad
-  %[60,[14,[<<"test">>],<<"kids2">>],{}]
-
-  %good
-  %[60,[[14,["test"]],"kids"]]
-
-
-  jsx:encode(Q)
+  Q
   .
 
 %build([]) ->
@@ -142,43 +133,55 @@ changes(Table, Function) ->
   %Function(F)
   .
 
-filter(F) when is_tuple(F) ->
-  filter([F]);
+filter(Sequence, F) when is_tuple(F) ->
+  filter(Sequence, [F]);
 
-filter(F) when is_list(F) ->
+filter(Sequence, F) when is_list(F) ->
   io:fwrite("F= ~p ~n",[F]),
   io:fwrite("F= ~p ~n", [jsx:encode(F)]),
-  {
+  [
     39,
     [],
-    [jsx:encode(F)]
-  };
-filter(F) when is_function(F) ->
-  {
+    [F]
+  ];
+filter(Sequence, F) when is_function(F) ->
+  [
     39,
-    [],
-    %[",", jsx:encode([69,[[2,[9]],[17,[[170,[[10,[9]],<<"age">>]],30]]]])]
-    jsx:encode(F(1))
-  }.
+    [Sequence,F(1)]
+  ].
 
 eq(Field, Value) ->
-  {
-   "17",
-   %19, magic number
-   jsx:encode([[170, [[10, [19]], Field]], Value]),
-   []
-  }
+  [
+   17,
+   [[170, [[10, [20]], Field]], Value]
+   %[{}]
+  ]
   .
 
 gt({Field, Value}) ->
-  {
-   "21",
-   %19, magic number
-   jsx:encode([[170, [[10, [19]], Field]], Value]),
-   []
-  }
+  [
+   21,
+   [[170, [[10, [20]], Field]], Value]
+   %[]
+  ]
+  .
+
+match({Field, Value}) ->
+  [
+   97,
+   [[170, [[10, [20]], Field]], Value]
+  ]
   .
 
 f_and([]) -> [];
 f_and([F|R])  ->
   make([F]) ++ f_and(R).
+
+now() ->
+  [
+   103,
+   [],
+   [{}]
+  ]
+  .
+

@@ -55,7 +55,7 @@ row(Var, Q) ->
  %           [17, [
  %               [170, [
  %                   [10, [17]], "age"
- %               ]], 9999
+ %               ]],age 9999
  %           ]],
  %           [17, [
  %               [170, [
@@ -66,12 +66,11 @@ row(Var, Q) ->
  %           ]]
  %       ]]
  %   ]]
- 
+
   [69, [
     [2, gen_var(1)],
-    [relang_ast:make_json(Q)]
+    relang_ast:make(Q)
   ]]
-  %relang_ast:make(Field)
   .
 
 gen_var(L) ->
@@ -84,7 +83,7 @@ query(Socket, RawQuery) ->
   Token = random:uniform(3709551616),
   io:format("QueryToken = ~p~n", [Token]),
 
-  Query = relang_ast:make(RawQuery),
+  Query = jsx:encode(relang_ast:make(RawQuery)),
 
   io:format("Query = ~p ~n", [Query]),
   Iolist  = ["[1,"] ++ [Query] ++ [",{}]"], % list db 
