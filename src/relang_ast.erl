@@ -5,18 +5,28 @@
 
 -compile(export_all). %% replace with -export() later, for God's sake!
 
-make([Query]) when is_tuple(Query)->
-  {Tc, Ta, To} = build(Query),
-  [Tc,  ",[", Ta, "]"];
+make(Query) when is_tuple(Query)->
+  Q = build(Query),
+  jsx:encode(Q);
 
 make([Query | Qs]) ->
-  {Tc, Ta, To} = build(Query),
-  Parent = [Tc, ",[", Ta, "]"],
-  build(Qs, Parent)
+  Parent = build(Query),
+  Q = build(Qs, Parent),
+  io:fwrite("Q= ~p", [Q]),
+  io:fwrite("Q2= ~p", [Q]),
+
+  %bad
+  %[60,[14,[<<"test">>],<<"kids2">>],{}]
+
+  %good
+  %[60,[[14,["test"]],"kids"]]
+
+
+  jsx:encode(Q)
   .
 
-build([]) ->
-  "";
+%build([]) ->
+%  "";
 
 build(Query) when is_tuple(Query) ->
   case Query of
@@ -30,7 +40,6 @@ build(Query) when is_tuple(Query) ->
     {Func, Arguments} when not is_list(Arguments)->
       io:format("Sngle Tuple ~p ~p lol~n", [Func, [Arguments]]),
       T = apply(?MODULE, Func, [Arguments])
-
   end,
   io:format("Single Return ~p ~n", [T]),
   T
@@ -38,87 +47,98 @@ build(Query) when is_tuple(Query) ->
 
 build([], Parent) ->
   Parent
-  %["[", Tc, ",[" ] ++ [""] ++ ["],", Ta, "]"]
   ;
-build(Query, Parent) when is_tuple(Query)->
-  {Tc, Ta, To} = build(Query),
-  case Ta of
-    [""] ->
-      [Tc, ",[[" ] ++ Parent ++ ["]", Ta, To, "]"];
-    _ ->
-      [Tc, ",[[" ] ++ Parent ++ ["],", Ta, To, "]"]
-  end
-  ;
-build([Query | Qs], Parent) ->
+build([Query | Qs], Parent) when is_tuple(Query)->
+  case Query of
+    {Func} ->
+      io:format("Sngle Tuple hello ~p ~n", [Func]),
+      T = apply(?MODULE, Func, [Parent])
+      ;
+    {Func, Arguments} when is_list(Arguments)->
+      io:format("Sngle Tuple ~p ~p lol~n", [Func, Arguments]),
+      T = apply(?MODULE, Func, [Parent] ++ Arguments);
+    {Func, Arguments} when not is_list(Arguments)->
+      io:format("Sngle Tuple ~p ~p lol~n", [Func, [Arguments]]),
+      T = apply(?MODULE, Func, [Parent] ++ [Arguments])
+  end,
+  io:format("Single Return ~p ~n", [T]),
+  build(Qs, T)
+  .
+
+build(Ignore_Now, [Query | Qs], Parent) ->
   {Tc, Ta, To} = build(Query),
   Node = case Ta of
-    [""] ->
-      [Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, To, "]"];
+    [] ->
+      %[Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, To, "]"];
+      [Tc, [Parent]];
     _ ->
-      [Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, To, "]", To]
+      %[Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, To, "]", To]
+      [Tc, Parent ++ Ta, To]
   end,
-
   build(Qs, Node)
   .
 
 %%Detail implementation of API
 db_create(Name) ->
-  {
-   "57",
-   ["\"", Name, "\""],
-   []
-  }
+  [
+   57,
+   [Name],
+   {}
+  ]
 .
 
 db(DbName) ->
-  {
-   "14",
-   ["\"", DbName, "\""],
-   []
-  }.
+  [
+   14,
+   [DbName],
+   [{}]
+  ].
 
 db_list() ->
-  {
-    "59",
-    [""],
-    []
-  }.
+  [
+    59,
+    [],
+    [{}]
+  ].
 
-table_list() ->
-  {
-   "62",
-   [""],
-    []
-  }.
+table_list(Db) ->
+  [
+   62,
+   [Db],
+   [{}]
+  ].
 
-table(Name) ->
-  {
-   "15",
-   ["\"", Name, "\""],
-    []
-  }.
+table_list(Db,Option) ->
+  [
+   62,
+   [Db],
+   Option
+  ].
 
-table_create(Name) ->
-  {
-   "60",
-   ["\"", Name, "\""],
-    []
-  }.
+table(Db, Name) ->
+  [
+   15,
+   [Db, Name]
+  ].
 
-insert(Item) ->
-  {
-   "56",
-   Item,
-    []
-  }.
+table_create(Db, Name) ->
+  [
+   60,
+   [Db, Name]
+  ].
 
-changes(Function) ->
-  {
-   "152",
-   [""],
-    []
-  }
+insert(Table, Item) ->
+  [
+   56,
+   [Table, Item]
+  ].
 
+changes(Table, Function) ->
+  [
+   152,
+   [Table],
+   [{}]
+  ]
   %Function(F)
   .
 
@@ -129,10 +149,36 @@ filter(F) when is_list(F) ->
   io:fwrite("F= ~p ~n",[F]),
   io:fwrite("F= ~p ~n", [jsx:encode(F)]),
   {
-    "39",
-    [""],
-    [",", jsx:encode(F)]
+    39,
+    [],
+    [jsx:encode(F)]
   };
 filter(F) when is_function(F) ->
   {
+    39,
+    [],
+    %[",", jsx:encode([69,[[2,[9]],[17,[[170,[[10,[9]],<<"age">>]],30]]]])]
+    jsx:encode(F(1))
   }.
+
+eq(Field, Value) ->
+  {
+   "17",
+   %19, magic number
+   jsx:encode([[170, [[10, [19]], Field]], Value]),
+   []
+  }
+  .
+
+gt({Field, Value}) ->
+  {
+   "21",
+   %19, magic number
+   jsx:encode([[170, [[10, [19]], Field]], Value]),
+   []
+  }
+  .
+
+f_and([]) -> [];
+f_and([F|R])  ->
+  make([F]) ++ f_and(R).

@@ -47,6 +47,37 @@ handshake(Sock, AuthKey) ->
 r(Socket, RawQuery) ->
   query(Socket, RawQuery).
 
+%Working with filter
+row(Var, Q) ->
+ %   [69, [
+ %       [2, [17]],
+ %       [67, [
+ %           [17, [
+ %               [170, [
+ %                   [10, [17]], "age"
+ %               ]], 9999
+ %           ]],
+ %           [17, [
+ %               [170, [
+ %                   [170, [
+ %                       [10, [17]], "name"
+ %                   ]], "last"
+ %               ]], "Adama"
+ %           ]]
+ %       ]]
+ %   ]]
+ 
+  [69, [
+    [2, gen_var(1)],
+    [relang_ast:make_json(Q)]
+  ]]
+  %relang_ast:make(Field)
+  .
+
+gen_var(L) ->
+  [20]
+  .
+
 query(Socket, RawQuery) ->
   {A1, A2, A3} = now(),
   random:seed(A1, A2, A3),
@@ -56,7 +87,7 @@ query(Socket, RawQuery) ->
   Query = relang_ast:make(RawQuery),
 
   io:format("Query = ~p ~n", [Query]),
-  Iolist  = ["[1,["] ++ Query ++ ["],{}]"], % list db 
+  Iolist  = ["[1,"] ++ [Query] ++ [",{}]"], % list db 
   Length = iolist_size(Iolist),
   io:format("Query= ~p~n", [Iolist]),
   io:format("Length: ~p ~n", [Length]),
@@ -167,7 +198,7 @@ run() ->
 
   %<<"{\"name\":\"item87vinhtestinerlang\"}">>
   M = [{<<"name">>, <<"vinh">>}],
-  Qtinsert = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {insert, [jsx:encode(M)]} ],
+  Qtinsert = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {insert, [M]} ],
 
   Qfetchall = [{db, [<<"test">>]}, {table, <<"tv_shows">>} ],
   Qfchange = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {changes, fun(Item) -> io:format(Item) end} ],
@@ -177,20 +208,20 @@ run() ->
   io:format("LIST DB ~n======~n"),
   query(RethinkSock, Qlist),
 
-  %io:format("LIST Table ~n======~n"),
+  io:format("LIST Table ~n======~n"),
   query(RethinkSock, Qtlist),
 
-  %io:format("Create  ~n======~n"),
+  io:format("Create  ~n======~n"),
   query(RethinkSock, Qtcreate),
 
-  %io:format("Insert ~n======~n"),
+  io:format("Insert ~n======~n"),
   query(RethinkSock, Qtinsert),
 
+  io:format("Fetchall ~n======~n"),
   query(RethinkSock, Qfetchall),
 
-
   io:format("Filter ~n======~n"),
-  query(RethinkSock, Qtfilter),
+  %query(RethinkSock, Qtfilter),
 
   io:format("Changefeed ~n======~n"),
   query(RethinkSock, Qfchange),
