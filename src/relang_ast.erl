@@ -5,6 +5,19 @@
 
 -compile(export_all). %% replace with -export() later, for God's sake!
 
+%% Term definition
+-define(NOW, 103).
+-define(MATCH, 97).
+-define(CHANGE, 152).
+-define(INSERT, 56).
+-define(BRACKET, 170).
+-define(GT, 21).
+-define(EQ, 17).
+-define(FILTER, 39).
+-define(DB, 14).
+-define(DB_CREATE, 57).
+
+
 make(Query) when is_tuple(Query)->
   Q = build(Query);
 
@@ -72,7 +85,7 @@ build(Ignore_Now, [Query | Qs], Parent) ->
 %%Detail implementation of API
 db_create(Name) ->
   [
-   57,
+   ?DB_CREATE,
    [Name],
    {}
   ]
@@ -80,7 +93,7 @@ db_create(Name) ->
 
 db(DbName) ->
   [
-   14,
+   ?DB,
    [DbName],
    [{}]
   ].
@@ -120,13 +133,13 @@ table_create(Db, Name) ->
 
 insert(Table, Item) ->
   [
-   56,
+   ?INSERT,
    [Table, Item]
   ].
 
 changes(Table, Function) ->
   [
-   152,
+   ?CHANGE,
    [Table],
    [{}]
   ]
@@ -140,19 +153,19 @@ filter(Sequence, F) when is_list(F) ->
   io:fwrite("F= ~p ~n",[F]),
   io:fwrite("F= ~p ~n", [jsx:encode(F)]),
   [
-    39,
+    ?FILTER,
     [],
     [F]
   ];
 filter(Sequence, F) when is_function(F) ->
   [
-    39,
+    ?FILTER,
     [Sequence,F(1)]
   ].
 
 eq(Field, Value) ->
   [
-   17,
+   ?EQ,
    [[170, [[10, [20]], Field]], Value]
    %[{}]
   ]
@@ -160,16 +173,16 @@ eq(Field, Value) ->
 
 gt({Field, Value}) ->
   [
-   21,
-   [[170, [[10, [20]], Field]], Value]
+   ?GT,
+   [[?BRACKET, [[10, [20]], Field]], Value]
    %[]
   ]
   .
 
 match({Field, Value}) ->
   [
-   97,
-   [[170, [[10, [20]], Field]], Value]
+   ?MATCH,
+   [[?BRACKET, [[10, [20]], Field]], Value]
   ]
   .
 
@@ -179,7 +192,7 @@ f_and([F|R])  ->
 
 now() ->
   [
-   103,
+   ?NOW,
    [],
    [{}]
   ]
