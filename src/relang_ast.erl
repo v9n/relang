@@ -16,7 +16,10 @@
 -define(FILTER, 39).
 -define(DB, 14).
 -define(DB_CREATE, 57).
-
+-define(db_list, 59).
+-define(TABLE, 15).
+-define(table_list, 62).
+-define(TABLE_CREATE, 60).
 
 make(Query) when is_tuple(Query)->
   Q = build(Query);
@@ -100,34 +103,34 @@ db(DbName) ->
 
 db_list() ->
   [
-    59,
+    ?db_list,
     [],
     [{}]
   ].
 
 table_list(Db) ->
   [
-   62,
+   ?table_list,
    [Db],
    [{}]
   ].
 
 table_list(Db,Option) ->
   [
-   62,
+   ?table_list,
    [Db],
    Option
   ].
 
 table(Db, Name) ->
   [
-   15,
+   ?TABLE,
    [Db, Name]
   ].
 
 table_create(Db, Name) ->
   [
-   60,
+   ?TABLE_CREATE,
    [Db, Name]
   ].
 
