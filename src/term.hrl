@@ -1,3 +1,8 @@
+-define(QUERYTYPE_START, 1).
+-define(QUERYTYPE_CONTINUE, 2).
+-define(QUERYTYPE_STOP, 3).
+-define(QUERYTYPE_NOREPLY_WAIT, 4).
+
 -define(SUCCESS_ATOM, 1).
 -define(SUCCESS_SEQUENCE, 2).
 -define(SUCCESS_PARTIAL, 3).

@@ -79,15 +79,18 @@ gen_var(L) ->
   .
 
 query(Socket, RawQuery) ->
+  query(Socket, RawQuery, [{}])
+  .
+query(Socket, RawQuery, Option) ->
   {A1, A2, A3} = now(),
   random:seed(A1, A2, A3),
   Token = random:uniform(3709551616),
   io:format("QueryToken = ~p~n", [Token]),
 
-  Query = jsx:encode(relang_ast:make(RawQuery)),
+  Query = relang_ast:make(RawQuery),
 
   io:format("Query = ~p ~n", [Query]),
-  Iolist  = ["[1,"] ++ [Query] ++ [",{}]"], % list db 
+  Iolist  = jsx:encode([?QUERYTYPE_START, Query, Option]), % ["[1,"] ++ [Query] ++ [",{}]"], % list db 
   Length = iolist_size(Iolist),
   io:format("Query= ~p~n", [Iolist]),
   io:format("Length: ~p ~n", [Length]),
