@@ -2,24 +2,9 @@
 
 -author(kureikain).
 -email("kurei@axcoto.com").
+-include("term.hrl").
 
 -compile(export_all). %% replace with -export() later, for God's sake!
-
-%% Term definition
--define(NOW, 103).
--define(MATCH, 97).
--define(CHANGE, 152).
--define(INSERT, 56).
--define(BRACKET, 170).
--define(GT, 21).
--define(EQ, 17).
--define(FILTER, 39).
--define(DB, 14).
--define(DB_CREATE, 57).
--define(db_list, 59).
--define(TABLE, 15).
--define(table_list, 62).
--define(TABLE_CREATE, 60).
 
 make(Query) when is_tuple(Query)->
   Q = build(Query);
@@ -35,54 +20,49 @@ make([Query | Qs]) ->
 %build([]) ->
 %  "";
 
+% Argument can be other ReQL
+
+build_argument(A) when is_tuple(A)->
+  A
+  ;
+build_argument(A) when is_list(A)->
+  A
+  .
+
 build(Query) when is_tuple(Query) ->
   case Query of
     {Func} ->
-      io:format("Sngle Tuple hello ~p ~n", [Func]),
-      T = apply(?MODULE, Func, [])
-      ;
+      T = apply(?MODULE, Func, []);
     {Func, Arguments} when is_list(Arguments)->
-      io:format("Sngle Tuple ~p ~p lol~n", [Func, Arguments]),
       T = apply(?MODULE, Func, Arguments);
     {Func, Arguments} when not is_list(Arguments)->
-      io:format("Sngle Tuple ~p ~p lol~n", [Func, [Arguments]]),
       T = apply(?MODULE, Func, [Arguments])
   end,
-  io:format("Single Return ~p ~n", [T]),
   T
 .
 
-build([], Parent) ->
-  Parent
-  ;
-build([Query | Qs], Parent) when is_tuple(Query)->
-  case Query of
-    {Func} ->
-      io:format("Sngle Tuple hello ~p ~n", [Func]),
-      T = apply(?MODULE, Func, [Parent])
-      ;
-    {Func, Arguments} when is_list(Arguments)->
-      io:format("Sngle Tuple ~p ~p lol~n", [Func, Arguments]),
-      T = apply(?MODULE, Func, [Parent] ++ Arguments);
-    {Func, Arguments} when not is_list(Arguments)->
-      io:format("Sngle Tuple ~p ~p lol~n", [Func, [Arguments]]),
-      T = apply(?MODULE, Func, [Parent] ++ [Arguments])
-  end,
-  io:format("Single Return ~p ~n", [T]),
-  build(Qs, T)
+% We have some function name we
+func_name(F) ->
+  case F of
+    f_and ->
+      list_to_atom("r_" ++ atom_to_list(F));
+    _ ->
+      F
+  end
   .
 
-build(Ignore_Now, [Query | Qs], Parent) ->
-  {Tc, Ta, To} = build(Query),
-  Node = case Ta of
-    [] ->
-      %[Tc, ",[[" ] ++ [Parent] ++ ["]", Ta, To, "]"];
-      [Tc, [Parent]];
-    _ ->
-      %[Tc, ",[[" ] ++ [Parent] ++ ["],", Ta, To, "]", To]
-      [Tc, Parent ++ Ta, To]
+build([], Parent) ->
+  Parent;
+build([Query | Qs], Parent) when is_tuple(Query)->
+  T = case Query of
+    {Func} ->
+      apply(?MODULE, Func, [Parent]);
+    {Func, Arguments} when is_list(Arguments)->
+      apply(?MODULE, Func, [Parent] ++ Arguments);
+    {Func, Arguments} when not is_list(Arguments)->
+      apply(?MODULE, Func, [Parent] ++ [Arguments])
   end,
-  build(Qs, Node)
+  build(Qs, T)
   .
 
 %%Detail implementation of API
@@ -169,7 +149,7 @@ filter(Sequence, F) when is_function(F) ->
 eq(Field, Value) ->
   [
    ?EQ,
-   [[170, [[10, [20]], Field]], Value]
+   [[170, [[?VAR, [20]], Field]], Value]
    %[{}]
   ]
   .
@@ -177,7 +157,7 @@ eq(Field, Value) ->
 gt({Field, Value}) ->
   [
    ?GT,
-   [[?BRACKET, [[10, [20]], Field]], Value]
+   [[?BRACKET, [[?VAR, [20]], Field]], Value]
    %[]
   ]
   .
@@ -185,13 +165,15 @@ gt({Field, Value}) ->
 match({Field, Value}) ->
   [
    ?MATCH,
-   [[?BRACKET, [[10, [20]], Field]], Value]
+   [[?BRACKET, [[?VAR, [20]], Field]], Value]
   ]
   .
 
-f_and([]) -> [];
-f_and([F|R])  ->
-  make([F]) ++ f_and(R).
+r_and([]) -> [];
+r_and([F|R])  ->
+  make([F]) ++ r_and(R).
+
+r_or() -> [].
 
 now() ->
   [
@@ -201,3 +183,33 @@ now() ->
   ]
   .
 
+expr([Op | Rest]) ->
+  Ex = expr(Op)
+  ;
+expr([]) -> [];
+expr(Op) when is_tuple(Op) ->
+  expr([Op])
+  .
+
+add(X, Y) ->
+  [?ADD,
+   [X, Y]
+  ].
+
+sub(X, Y) ->
+  [?SUB,
+   [X, Y]
+  ].
+
+mul(X, Y) ->
+  [?MUL,
+   [X, Y]
+  ].
+
+r_div(X, Y) ->
+  [?DIV, [X, Y]]
+  .
+
+mod(X, Y) ->
+  [?MOD, [X, Y]]
+  .

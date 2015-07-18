@@ -10,6 +10,7 @@
 -define(RETHINKDB_VERSION, 32#723081e1).
 
 -include("ql2_pb.hrl").
+-include("term.hrl").
 
 start() ->
   application:start(relang),
@@ -105,16 +106,16 @@ query(Socket, RawQuery) ->
       Rterm = jsx:decode(R),
       %proplists:get_value(<<"r">>, Rterm),
       case proplists:get_value(<<"t">>, Rterm) of
-        18 ->
+        ?RUNTIME_ERROR ->
           io:format("Error"),
           {error, proplists:get_value(<<"r">>, Rterm)};
-        1 ->
+        ?SUCCESS_ATOM ->
           io:format("atom response"),
           {ok, proplists:get_value(<<"r">>, Rterm)};
-        2 ->
+        ?SUCCESS_SEQUENCE ->
           io:format("SUCCESS_SEQUENCE"),
           {ok, proplists:get_value(<<"r">>, Rterm)};
-        3 ->
+        ?SUCCESS_PARTIAL ->
           % So we get back a stream, let continous pull query
           io:format("SUCCESS_PARTIAL <<< Get more data~n"),
 
