@@ -1,4 +1,9 @@
+.eunit
+.rebar
 deps
 ebin
 *.beam
 .DS_Store
+
+_*
+rethinkdb_data
