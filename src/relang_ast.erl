@@ -325,3 +325,9 @@ row(Var, Q) ->
 gen_var(L) ->
   [20]
   .
+
+count(S) ->
+  [
+   ?TERMTYPE_COUNT,
+   [S]
+  ].

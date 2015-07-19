@@ -1,6 +1,8 @@
 -module(relang_ast_tests).
 -include_lib("eunit/include/eunit.hrl").
 
+-define(test, ?assertMatch(R, relang_ast:make(Q))).
+
 db_test() ->
   ?assertMatch([14,[<<"test">>],[{}]], relang_ast:make([{db, <<"test">>}])).
 
@@ -9,9 +11,9 @@ db_list_test() ->
 
 table_list_test() ->
   ?assertMatch([62,[[14,[<<"test">>],[{}]]],[{}]], relang_ast:make([
-    {db, <<"test">>},
-    {table_list}
-  ])).
+                                                                    {db, <<"test">>},
+                                                                    {table_list}
+                                                                   ])).
 
 get_test() ->
   Q = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {get, <<"key">>}],
@@ -29,7 +31,7 @@ update_all_test() ->
   Q = [ {db, [<<"test">>]},
         {table, [<<"tv_shows">>]},
         {update, [[{<<"vin_touch">>, <<12>>}]
-                  ]}
+                 ]}
       ],
   R = [53,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], [{<<"vin_touch">>, <<"\f">>}]]],
   ?assertMatch(R, relang_ast:make(Q))
@@ -40,7 +42,7 @@ update_single_test() ->
         {table, [<<"tv_shows">>]},
         {get, [<<"1a98d636">>]},
         {update, [[{<<"vin_touch">>, 12}]
-                  ]}
+                 ]}
       ],
   %R = [53,[[16,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], 12]], [{<<"vinh_touched">>, 12}]]],
   R = [53,[[16,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], <<"1a98d636">>]], [{<<"vin_touch">>, 12}]]],
@@ -53,8 +55,8 @@ update_with_option() ->
         {table, [<<"tv_shows">>]},
         {get, [<<"1a98d636">>]},
         {update,
-          [[{<<"vin_touch">>, 12}]],
-          [{durability, soft}, {return_changes, false}]
+         [[{<<"vin_touch">>, 12}]],
+         [{durability, soft}, {return_changes, false}]
         }
       ],
   R = [53,
@@ -82,3 +84,9 @@ filter_test() ->
                                  ])
                            end}]
                 )).
+
+count_test() ->
+  Q = [{db, [<<"test">>]}, {table, [<<"tv_shows">>]}, {count}],
+  R = [43,[[15,[[14,[<<"test">>],[{}]], <<"tv_shows">>]]]],
+  ?test
+  .

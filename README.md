@@ -185,6 +185,25 @@ relang:r(C1,
     [{<<"durability">>, soft}, {return_changes, false}]
   }
   ])
+
+% Or update with function
+relang:r(C1,
+  [{db, [<<"test">>]},
+  {table, <<"tv_shows">>},
+  {get, <<"6b443331-d7c9-4304-867d-251db183446f">>},
+  {update,
+    fun (X) ->
+    end
+  }
+  ])
+```
+
+## Aggregation
+
+### Count
+
+```
+relang:query(C, [ {db, [<<"test">>]}, {table, [<<"tv_shows">>]}, {count}]).
 ```
 
 # Development

@@ -20,6 +20,7 @@
 
 -define(MATCH, 97).
 -define(CHANGE, 152).
+-define(TERMTYPE_COUNT, 43).
 -define(TERMTYPE_UPDATE, 53).
 -define(TERMTYPE_INSERT, 56).
 -define(BRACKET, 170).
