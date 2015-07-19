@@ -25,6 +25,18 @@ insert_test() ->
   ?assertMatch(R, relang_ast:make(Q))
   .
 
+update_test() ->
+  Q = [ {db, [<<"test">>]},
+        {table, [<<"tv_shows">>]},
+        {update, [[{<<"vin_touch">>, <<12>>}]
+                  ]}
+      ],
+  R = [53,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], [{<<"vin_touch">>, <<"\f">>}]]],
+  ?assertMatch(R, relang_ast:make(Q))
+  .
+
+
+
 filter_test() ->
   ?assertMatch([39,
                 [[15,[[14,[<<"test">>],[{}]],<<"tv_shows">>]],

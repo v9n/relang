@@ -124,7 +124,13 @@ table_create(Db, Name) ->
 
 insert(Table, Item) ->
   [
-   ?INSERT,
+   ?TERMTYPE_INSERT,
+   [Table, Item]
+  ].
+
+update(Table, Item) ->
+  [
+   ?TERMTYPE_UPDATE,
    [Table, Item]
   ].
 
