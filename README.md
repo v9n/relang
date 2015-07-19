@@ -57,42 +57,89 @@ but actually they are serialized and pass to the server for evaluate.
 Depend on driver, the syntax of using `row` with `filter` is different.
 Here is how we do it in Erlang:
 
+With exactly match.
 ```
-relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {filter, [{<<"age">>, 30}).
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect("127.0.0.1"),
+  [ {db, [<<"test">>]},
+    {table, [<<"tv_shows">>]},
+    {filter, [
+      [{<<"age">>, 30},
+      {<<"name">>, <<"kurei">>},
+      {<<"show">>, 1}]
+    ]}
+  ]
+).
+
 ```
 
-With functional style
+It's not powerful enough so we come up With functional style
 
-```
+```Erlang
 
-# This works now
-relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
-[<<"tv_shows">>]}, {filter, fun(X) -> relang:row(X, [{gt, [{<<"age">>,
-30}]}]) end}]).
-
-relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
-[<<"tv_shows">>]}, {filter, fun(X) -> relang:row(X, [{match,
-[{<<"name">>, <<"^k">>}]}]) end}]).
-
-
-# These are pending/change
-relang:r(C9, [{db, ["test"]}, {table, ["tv_shows"]}, {filter, fun(X) -> io:format("filter") end}]).
-
-relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {filter, func(X) ->
-  relang:row(X, age, {eq, <<30>>})
-end}).
-
-relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {filter, func(X) ->
-  relang:row(X, age, {and, [{eq, <<30>>}, {eq, <<30>>}]})
-end}).
-
-relang:r(Connection, [[{db, ["test"]}, {table, ["t4"]}, {filter, func(X) ->
-  relang:row(X, [{gt, <<"age">>, 30}, {or, match, <<"name">>, <<"V">>}]
-end}).
-
-relang:r(D1, [{db, ["test"]}, {table, ["tv_shows"]}, {filter, fun(X) ->
-  relang:row(X, [{eq, <<"age">>, 30}])
+relang:r(C, [{db, [<<"test">>]}, {table,
+[<<"tv_shows">>]}, {filter, fun(X) ->
+  X([
+    {'and', [
+      {gt, [<<"age">>, 22]},
+      {lt, [<<"age">>, 25]},
+      {match, [<<"name">>,  <<"^k">>]}
+    ]}
+  ])
 end}]).
+
+relang:r(C, [{db, [<<"test">>]}, {table,
+[<<"tv_shows">>]}, {filter, fun(X) ->
+  X([
+    {'and', [
+      {gt, [<<"age">>, 22]},
+      {lt, [<<"age">>, 25]}
+    ]}
+  ])
+end}]).
+
+# find user 22 -> 25 of age, name starts with `k`, and opt-in to `show`
+relang:r(C, [{db, [<<"test">>]}, {table,
+[<<"tv_shows">>]}, {filter, fun(X) ->
+  X([
+    {'and', [
+      {gt, [<<"age">>, 22]},
+      {lt, [<<"age">>, 25]},
+      {match, [<<"name">>,  <<"^k">>]},
+      {has_field, <<"show">>
+    ]}
+  ])
+end}]).
+
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
+[<<"tv_shows">>]}, {filter, fun(X) ->
+  X([
+    {'and', [
+      {gt, [<<"age">>, 22]},
+      {lt, [<<"age">>, 25]},
+      {match, [<<"name">>,  <<"^k">>]},
+      {has_field, <<"show">>}
+    ]}
+  ])
+end}]).
+
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
+[<<"tv_shows">>]}, {filter, fun(X) ->
+  X([
+      {has_field, <<"show">>}
+  ])
+end}]).
+
+```
+
+## Expr
+
+```
+relang:r(Connection, [{expr(2)}]).
+
+relang:r(Connection, {expr, 2
 ```
 
 # API
@@ -100,3 +147,21 @@ end}]).
 ```
 relang:r(relang:connect("127.0.0.1"), [{now}]).
 ```
+
+
+# Development
+
+Make sure to use `tcpdump` during development for ReQL inspect
+
+```
+tcpdump -nl -w - -i lo0 -c 500 port 28015|strings
+```
+
+# Test
+
+```
+rebar eu
+```
+
+## Integration test with Docker (pending)
+

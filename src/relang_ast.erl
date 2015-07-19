@@ -133,13 +133,15 @@ changes(Table, Function) ->
   %Function(F)
   .
 
+%%% For simple filter, we do exactly match only
+%%% For complex filter, using anonymous function
 filter(Sequence, F) when is_tuple(F) ->
   filter(Sequence, [F]);
 filter(Sequence, F) when is_list(F) ->
   [
     ?FILTER,
-    [],
-    [F]
+    [Sequence,
+    F]
   ];
 filter(Sequence, F) when is_function(F) ->
   Q = fun(Query) ->
@@ -182,18 +184,18 @@ le(Field, Value) ->
   ]
   .
 
-match(Arg, F, V) -> 
-  log:debug("Match", [Arg, F, V]),
-  [
-   ?MATCH,
-   [[?BRACKET, [[?VAR, [20]], F]], V]
-  ]
-  .
 match(Field, Value) ->
   [
    ?MATCH,
    [[?BRACKET, [[?VAR, [20]], Field]], Value]
   ]
+  .
+
+%%% Note: not a part of REQL
+%%% @TODO: Refactor and move it out
+%%% has_field has no function body. no option
+has_field(F) ->
+  [?BRACKET, [[?VAR, [20]], F]]
   .
 
 %%% when we pass argument to 'and', because of our recursion
@@ -210,21 +212,29 @@ match(Field, Value) ->
     {c, L__} -> L__;
     _ -> make(L)
   end,
-  [?AND, [L_, make(R)]]
+  [?TERMTYPE_AND, [L_, make(R)]]
   ;
 'and'(C) ->
   log:debug("WHOLE ELEM", [C]),
   [L,R, H|T] = C,
   log:debug("BREAK APART", [L, R, H, T]),
-  'and'([
-    {c, 'and'([L,R])},
-    [H] ++ T
-        ])
+  'and'([{c, 'and'([L,R])}] ++
+        [H] ++ T)
   .
 
-'or'([]) -> [];
-'or'([L|R]) ->
-  [?OR, [make(L), make(R)]]
+'or'([L,R]) ->
+  L_ = case L of
+    {c, L__} -> L__;
+    _ -> make(L)
+  end,
+  [?TERMTYPE_OR, [L_, make(R)]]
+  ;
+'or'(C) ->
+  [L,R, H|T] = C,
+  'or'([
+    {c, 'or'([L,R])},
+    [H] ++ T
+        ])
   .
 
 now() ->

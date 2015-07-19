@@ -49,6 +49,6 @@
 -define(DIV, 27). %// NUMBER... 
 -define(MOD, 28). %// NUMBER, NUMBER -> NUMBER
 
--define(AND, 67).
--define(OR, 66).
+-define(TERMTYPE_AND, 67).
+-define(TERMTYPE_OR, 66).
 

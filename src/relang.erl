@@ -67,7 +67,7 @@ query(Socket, RawQuery, Option) ->
 
   Query = relang_ast:make(RawQuery),
 
-  %io:format("Query = ~p ~n", [Query]),
+  io:format("Query = ~p ~n", [Query]),
   Iolist  = jsx:encode([?QUERYTYPE_START, Query, Option]), % ["[1,"] ++ [Query] ++ [",{}]"], % list db 
   Length = iolist_size(Iolist),
   %io:format("Query= ~p~n", [Iolist]),
