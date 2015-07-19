@@ -7,13 +7,11 @@
 -compile(export_all). %% replace with -export() later, for God's sake!
 
 make(Query) when is_tuple(Query)->
-  Q = build(Query);
+  build(Query);
 
 make([Query | Qs]) ->
   Parent = build(Query),
   Q = build(Qs, Parent),
-  %io:fwrite("Q= ~p", [Q]),
-  %io:fwrite("Q2= ~p", [Q]),
   Q
   .
 
@@ -205,9 +203,6 @@ has_field(F) ->
 %%%
 %%% We don't have to do for R, because R is never pre-compile
 'and'([L,R]) ->
-  log:debug("2 ELEM", [L, R]),
-  log:debug("L ", [L]),
-  log:debug("R ", [R]),
   L_ = case L of
     {c, L__} -> L__;
     _ -> make(L)
@@ -215,9 +210,7 @@ has_field(F) ->
   [?TERMTYPE_AND, [L_, make(R)]]
   ;
 'and'(C) ->
-  log:debug("WHOLE ELEM", [C]),
   [L,R, H|T] = C,
-  log:debug("BREAK APART", [L, R, H, T]),
   'and'([{c, 'and'([L,R])}] ++
         [H] ++ T)
   .

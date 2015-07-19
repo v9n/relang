@@ -1,5 +1,32 @@
 -module(relang_ast_tests).
 -include_lib("eunit/include/eunit.hrl").
 
-make_test() ->
-  ?assertMatch(["59",",[",[[]],"]"], relang_ast:make([{db_list}])).
+db_test() ->
+  ?assertMatch([14,[<<"test">>],[{}]], relang_ast:make([{db, <<"test">>}])).
+
+db_list_test() ->
+  ?assertMatch([59,[],[{}]], relang_ast:make([{db_list}])).
+
+table_list_test() ->
+  ?assertMatch([62,[[14,[<<"test">>],[{}]]],[{}]], relang_ast:make([
+    {db, <<"test">>},
+    {table_list}
+  ])).
+
+filter_test() ->
+  ?assertMatch([39,
+                [[15,[[14,[<<"test">>],[{}]],<<"tv_shows">>]],
+                 [69,[[2,[20]],[67,[[67,[[21,[[170,[[10,[20]], <<"age">>]],22]],[19,[[170,[[10,[20]],<<"age">>]],25]]]],[97,[[170,[[10,[20]],<<"name">>]],<<"^k">>]]]]]]
+                ]],
+               relang_ast:make(
+                 [{db, [<<"test">>]}, {table, [<<"tv_shows">>]}, 
+                  {filter, fun(X) ->
+                               X([
+                                  {'and', [
+                                           {gt, [<<"age">>, 22]},
+                                           {lt, [<<"age">>, 25]},
+                                           {match, [<<"name">>,  <<"^k">>]}
+                                          ]}
+                                 ])
+                           end}]
+                )).
