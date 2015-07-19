@@ -25,7 +25,7 @@ insert_test() ->
   ?assertMatch(R, relang_ast:make(Q))
   .
 
-update_test() ->
+update_all_test() ->
   Q = [ {db, [<<"test">>]},
         {table, [<<"tv_shows">>]},
         {update, [[{<<"vin_touch">>, <<12>>}]
@@ -35,7 +35,18 @@ update_test() ->
   ?assertMatch(R, relang_ast:make(Q))
   .
 
-
+update_single_test() ->
+  Q = [ {db, [<<"test">>]},
+        {table, [<<"tv_shows">>]},
+        {get, [<<"1a98d636">>]},
+        {update, [[{<<"vin_touch">>, 12}]
+                  ]}
+      ],
+  %R = [53,[[16,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], 12]], [{<<"vinh_touched">>, 12}]]],
+  R = [53,[[16,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], <<"1a98d636">>]], [{<<"vin_touch">>, 12}]]],
+  %,io:fwrite("~p", relang_ast:make(Q)),
+  ?assertMatch(R, relang_ast:make(Q))
+  .
 
 filter_test() ->
   ?assertMatch([39,
