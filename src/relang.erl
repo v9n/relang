@@ -186,6 +186,7 @@ run() ->
   Qfchange = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {changes, fun(Item) -> io:format(Item) end} ],
 
   Qtfilter = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {filter, [{<<"age">>, 30}]}],
+  Qtget = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {get, <<"1a98d636-1056-4579-84fd-c2ce33138792">>}],
 
   io:format("LIST DB ~n======~n"),
   query(RethinkSock, Qlist),
@@ -204,6 +205,9 @@ run() ->
 
   io:format("Filter ~n======~n"),
   %query(RethinkSock, Qtfilter),
+
+  io:format("Single Get ~n======~n"),
+  query(RethinkSock, Qtget),
 
   io:format("Changefeed ~n======~n"),
   query(RethinkSock, Qfchange),

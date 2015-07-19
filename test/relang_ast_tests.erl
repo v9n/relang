@@ -13,6 +13,12 @@ table_list_test() ->
     {table_list}
   ])).
 
+get_test() ->
+  Q = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {get, <<"key">>}],
+  R = [16, [[15,[[14,[<<"test">>],[{}]],<<"tv_shows">>]], <<"key">>]],
+  ?assertMatch(R, relang_ast:make(Q))
+  .
+
 filter_test() ->
   ?assertMatch([39,
                 [[15,[[14,[<<"test">>],[{}]],<<"tv_shows">>]],

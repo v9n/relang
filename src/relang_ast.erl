@@ -110,6 +110,12 @@ table(Db, Name) ->
    [Db, Name]
   ].
 
+get(Table, Key) ->
+  [
+   ?TERMTYPE_GET,
+   [Table, Key]
+  ].
+
 table_create(Db, Name) ->
   [
    ?TABLE_CREATE,

@@ -25,7 +25,7 @@
 
 -define(DB, 14).
 -define(TABLE, 15).
--define(GET, 16).
+-define(TERMTYPE_GET, 16).
 -define(GET_ALL, 78).
 -define(EQ, 17).
 -define(NE, 18).
