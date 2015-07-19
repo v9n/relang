@@ -28,18 +28,17 @@ build_argument(A) when is_list(A)->
   .
 
 build(Query) when is_tuple(Query) ->
-  Argument = case Query of
-    {Func} ->
-      [];
-    {Func, Arguments} when is_list(Arguments)->
-      Arguments;
-    {Func, Arguments} when not is_list(Arguments)->
-      [Arguments]
+  Params = case Query of
+    {F} -> [];
+    {F, A} when is_list(A)-> A;
+    {F, A} when not is_list(A)-> [A];
+    {F, A, O} when is_list(A)-> [A, O];
+    {F, A, O} when not is_list(A)-> [A, O]
   end,
-  case Func of
-    'or' -> apply(?MODULE, Func, [Argument]) ;
-    'and' -> apply(?MODULE, Func, [Argument]) ;
-    _ -> apply(?MODULE, Func, Argument)
+  case F of
+    'or' -> apply(?MODULE, F, [Params]) ;
+    'and' -> apply(?MODULE, F, [Params]) ;
+    _ -> apply(?MODULE, F, Params)
   end
 .
 
@@ -57,12 +56,11 @@ build([], Parent) ->
   Parent;
 build([Query | Qs], Parent) when is_tuple(Query)->
   T = case Query of
-    {Func} ->
-      apply(?MODULE, Func, [Parent]);
-    {Func, Arguments} when is_list(Arguments)->
-      apply(?MODULE, Func, [Parent] ++ Arguments);
-    {Func, Arguments} when not is_list(Arguments)->
-      apply(?MODULE, Func, [Parent] ++ [Arguments])
+    {Func} -> apply(?MODULE, Func, [Parent]);
+    {Func, Arguments} when is_list(Arguments)-> apply(?MODULE, Func, [Parent] ++ Arguments);
+    {Func, Arguments} when not is_list(Arguments)-> apply(?MODULE, Func, [Parent] ++ [Arguments]);
+    {Func, Arguments, Options} when not is_list(Arguments)-> apply(?MODULE, Func, [Parent] ++ [Arguments] ++ [Options]);
+    {Func, Arguments, Options} when is_list(Arguments)-> apply(?MODULE, Func, [Parent] ++ Arguments ++ [Options])
   end,
   build(Qs, T)
   .
@@ -132,6 +130,12 @@ update(Table, Item) ->
   [
    ?TERMTYPE_UPDATE,
    [Table, Item]
+  ].
+update(Table, Item, Option) ->
+  [
+   ?TERMTYPE_UPDATE,
+   [Table, Item],
+   Option
   ].
 
 changes(Table, Function) ->

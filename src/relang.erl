@@ -181,6 +181,15 @@ run() ->
   %<<"{\"name\":\"item87vinhtestinerlang\"}">>
   M = [{<<"name">>, <<"vinh">>}],
   Qtinsert = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {insert, [M]} ],
+  QtinsertWithOption = [{db, [<<"test">>]},
+                         {table, <<"tv_shows">>},
+                           {get, <<"6b443331-d7c9-4304-867d-251db183446f">>},
+                             {update,
+                                  [[{<<"name">>, <<"kurei kain">>},
+                                        {<<"age">>, <<29>>}]],
+                                      [{<<"durability">>, soft}, {return_changes, false}]
+                                        }
+                               ],
 
   Qfetchall = [{db, [<<"test">>]}, {table, <<"tv_shows">>} ],
   Qfchange = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {changes, fun(Item) -> io:format(Item) end} ],
@@ -199,6 +208,10 @@ run() ->
 
   io:format("Insert ~n======~n"),
   query(RethinkSock, Qtinsert),
+
+  io:format("Insert with option ~n======~n"),
+  query(RethinkSock, QtinsertWithOption),
+
 
   io:format("Fetchall ~n======~n"),
   query(RethinkSock, Qfetchall),

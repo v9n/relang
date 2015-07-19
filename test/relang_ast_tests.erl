@@ -48,6 +48,23 @@ update_single_test() ->
   ?assertMatch(R, relang_ast:make(Q))
   .
 
+update_with_option() ->
+  Q = [ {db, [<<"test">>]},
+        {table, [<<"tv_shows">>]},
+        {get, [<<"1a98d636">>]},
+        {update,
+          [[{<<"vin_touch">>, 12}]],
+          [{durability, soft}, {return_changes, false}]
+        }
+      ],
+  R = [53,
+       [[16,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], <<"1a98d636">>]],
+        [{<<"vin_touch">>, 12}],
+        [{<<"durability">>, <<"soft">>},{<<"return_changes">>,false}] 
+       ]],
+  ?assertMatch(R, relang_ast:make(Q))
+  .
+
 filter_test() ->
   ?assertMatch([39,
                 [[15,[[14,[<<"test">>],[{}]],<<"tv_shows">>]],

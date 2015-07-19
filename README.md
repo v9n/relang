@@ -174,7 +174,8 @@ relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {insert, [[{<<"name"
 ```Erlang
 relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {get, <<"6b443331-d7c9-4304-867d-251db183446f">>}, {update, [[{<<"name">>, <<"kurei kain">>}, {<<"age">>, <<29>>}]]}])
 
-relang:r(C1, 
+% Or update with option
+relang:r(C1,
   [{db, [<<"test">>]},
   {table, <<"tv_shows">>},
   {get, <<"6b443331-d7c9-4304-867d-251db183446f">>},
