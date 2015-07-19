@@ -12,21 +12,36 @@
 -define(RUNTIME_ERROR, 18).
 
 %% Term definition
+-define(MAKE_ARRAY, 2).
+
 -define(VAR, 10).
 -define(NOW, 103).
+-define(DURING, 105).
+
 -define(MATCH, 97).
 -define(CHANGE, 152).
 -define(INSERT, 56).
 -define(BRACKET, 170).
--define(GT, 21).
--define(EQ, 17).
--define(FILTER, 39).
+
 -define(DB, 14).
+-define(TABLE, 15).
+-define(GET, 16).
+-define(GET_ALL, 78).
+-define(EQ, 17).
+-define(NE, 18).
+-define(LT, 19).
+-define(LE, 20).
+-define(GT, 21).
+-define(GE, 22).
+-define(NOT, 23).
+
+-define(FILTER, 39).
 -define(DB_CREATE, 57).
 -define(db_list, 59).
--define(TABLE, 15).
 -define(table_list, 62).
 -define(TABLE_CREATE, 60).
+
+-define(FUNC, 69).
 
 -define(ADD, 24). % NUMBER... -> NUMBER | STRING... -> STRING
 -define(SUB, 25). %// NUMBER... -> NUMBER
@@ -34,4 +49,6 @@
 -define(DIV, 27). %// NUMBER... 
 -define(MOD, 28). %// NUMBER, NUMBER -> NUMBER
 
+-define(AND, 67).
+-define(OR, 66).
 

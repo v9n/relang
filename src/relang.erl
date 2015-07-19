@@ -45,39 +45,17 @@ handshake(Sock, AuthKey) ->
       {error, Response}
   end.
 
+
+%%% RethinkDB API
+r(Q) -> query(Q).
 r(Socket, RawQuery) ->
   query(Socket, RawQuery).
 
-%Working with filter
-row(Var, Q) ->
- %   [69, [
- %       [2, [17]],
- %       [67, [
- %           [17, [
- %               [170, [
- %                   [10, [17]], "age"
- %               ]],age 9999
- %           ]],
- %           [17, [
- %               [170, [
- %                   [170, [
- %                       [10, [17]], "name"
- %                   ]], "last"
- %               ]], "Adama"
- %           ]]
- %       ]]
- %   ]]
-
-  [69, [
-    [2, gen_var(1)],
-    relang_ast:make(Q)
-  ]]
+%%% Build AST from raw query
+query(RawQuery) ->
+  Query = relang_ast:make(RawQuery)
   .
-
-gen_var(L) ->
-  [20]
-  .
-
+%%% Build and Run query when passing Socket
 query(Socket, RawQuery) ->
   query(Socket, RawQuery, [{}])
   .
@@ -85,15 +63,15 @@ query(Socket, RawQuery, Option) ->
   {A1, A2, A3} = now(),
   random:seed(A1, A2, A3),
   Token = random:uniform(3709551616),
-  io:format("QueryToken = ~p~n", [Token]),
+  %io:format("QueryToken = ~p~n", [Token]),
 
   Query = relang_ast:make(RawQuery),
 
-  io:format("Query = ~p ~n", [Query]),
+  %io:format("Query = ~p ~n", [Query]),
   Iolist  = jsx:encode([?QUERYTYPE_START, Query, Option]), % ["[1,"] ++ [Query] ++ [",{}]"], % list db 
   Length = iolist_size(Iolist),
-  io:format("Query= ~p~n", [Iolist]),
-  io:format("Length: ~p ~n", [Length]),
+  %io:format("Query= ~p~n", [Iolist]),
+  %io:format("Length: ~p ~n", [Length]),
 
   case gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]) of
     ok -> ok;
@@ -133,6 +111,7 @@ query(Socket, RawQuery, Option) ->
       {error, ErrReason}
   end
   .
+%%%
 
 stream_stop(Socket, Token) ->
   Iolist = ["[3]"],

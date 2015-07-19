@@ -12,8 +12,8 @@ make(Query) when is_tuple(Query)->
 make([Query | Qs]) ->
   Parent = build(Query),
   Q = build(Qs, Parent),
-  io:fwrite("Q= ~p", [Q]),
-  io:fwrite("Q2= ~p", [Q]),
+  %io:fwrite("Q= ~p", [Q]),
+  %io:fwrite("Q2= ~p", [Q]),
   Q
   .
 
@@ -30,21 +30,25 @@ build_argument(A) when is_list(A)->
   .
 
 build(Query) when is_tuple(Query) ->
-  case Query of
+  Argument = case Query of
     {Func} ->
-      T = apply(?MODULE, Func, []);
+      [];
     {Func, Arguments} when is_list(Arguments)->
-      T = apply(?MODULE, Func, Arguments);
+      Arguments;
     {Func, Arguments} when not is_list(Arguments)->
-      T = apply(?MODULE, Func, [Arguments])
+      [Arguments]
   end,
-  T
+  case Func of
+    'or' -> apply(?MODULE, Func, [Argument]) ;
+    'and' -> apply(?MODULE, Func, [Argument]) ;
+    _ -> apply(?MODULE, Func, Argument)
+  end
 .
 
 % We have some function name we
 func_name(F) ->
   case F of
-    f_and ->
+    'and' ->
       list_to_atom("r_" ++ atom_to_list(F));
     _ ->
       F
@@ -131,30 +135,30 @@ changes(Table, Function) ->
 
 filter(Sequence, F) when is_tuple(F) ->
   filter(Sequence, [F]);
-
 filter(Sequence, F) when is_list(F) ->
-  io:fwrite("F= ~p ~n",[F]),
-  io:fwrite("F= ~p ~n", [jsx:encode(F)]),
   [
     ?FILTER,
     [],
     [F]
   ];
 filter(Sequence, F) when is_function(F) ->
+  Q = fun(Query) ->
+    row(Query)
+  end,
   [
     ?FILTER,
-    [Sequence,F(1)]
+    [Sequence, F(Q)]
   ].
 
 eq(Field, Value) ->
   [
    ?EQ,
-   [[170, [[?VAR, [20]], Field]], Value]
+   [[?BRACKET, [[?VAR, [20]], Field]], Value]
    %[{}]
   ]
   .
 
-gt({Field, Value}) ->
+gt(Field, Value) ->
   [
    ?GT,
    [[?BRACKET, [[?VAR, [20]], Field]], Value]
@@ -162,18 +166,66 @@ gt({Field, Value}) ->
   ]
   .
 
-match({Field, Value}) ->
+lt(Field, Value) ->
+  [
+   ?LT,
+   [[?BRACKET, [[?VAR, [20]], Field]], Value]
+   %[]
+  ]
+  .
+
+le(Field, Value) ->
+  [
+   ?LE,
+   [[?BRACKET, [[?VAR, [20]], Field]], Value]
+   %[]
+  ]
+  .
+
+match(Arg, F, V) -> 
+  log:debug("Match", [Arg, F, V]),
+  [
+   ?MATCH,
+   [[?BRACKET, [[?VAR, [20]], F]], V]
+  ]
+  .
+match(Field, Value) ->
   [
    ?MATCH,
    [[?BRACKET, [[?VAR, [20]], Field]], Value]
   ]
   .
 
-r_and([]) -> [];
-r_and([F|R])  ->
-  make([F]) ++ r_and(R).
+%%% when we pass argument to 'and', because of our recursion
+%%% we don't know if an argument is compiled or not.
+%%% We therefore use a {c, L} mean that it is compilted. 
+%%% Otherwise it's not.
+%%%
+%%% We don't have to do for R, because R is never pre-compile
+'and'([L,R]) ->
+  log:debug("2 ELEM", [L, R]),
+  log:debug("L ", [L]),
+  log:debug("R ", [R]),
+  L_ = case L of
+    {c, L__} -> L__;
+    _ -> make(L)
+  end,
+  [?AND, [L_, make(R)]]
+  ;
+'and'(C) ->
+  log:debug("WHOLE ELEM", [C]),
+  [L,R, H|T] = C,
+  log:debug("BREAK APART", [L, R, H, T]),
+  'and'([
+    {c, 'and'([L,R])},
+    [H] ++ T
+        ])
+  .
 
-r_or() -> [].
+'or'([]) -> [];
+'or'([L|R]) ->
+  [?OR, [make(L), make(R)]]
+  .
 
 now() ->
   [
@@ -206,10 +258,51 @@ mul(X, Y) ->
    [X, Y]
   ].
 
-r_div(X, Y) ->
+'div'(X, Y) ->
   [?DIV, [X, Y]]
   .
 
 mod(X, Y) ->
   [?MOD, [X, Y]]
+  .
+
+during(X, Y) ->
+  [?DURING, [X, Y]]
+  .
+
+%Working with filter
+row(Q) ->
+  [?FUNC, [
+    [?MAKE_ARRAY, gen_var(1)],
+    relang_ast:make(Q)
+  ]].
+
+
+row(Var, Q) ->
+ %   [69, [
+ %       [2, [17]],
+ %       [67, [
+ %           [17, [
+ %               [170, [
+ %                   [10, [17]], "age"
+ %               ]],age 9999
+ %           ]],
+ %           [17, [
+ %               [170, [
+ %                   [170, [
+ %                       [10, [17]], "name"
+ %                   ]], "last"
+ %               ]], "Adama"
+ %           ]]
+ %       ]]
+ %   ]]
+
+  [?FUNC, [
+    [?MAKE_ARRAY, gen_var(1)],
+    relang_ast:make(Q)
+  ]]
+  .
+
+gen_var(L) ->
+  [20]
   .
