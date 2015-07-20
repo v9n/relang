@@ -160,6 +160,22 @@ relang:r(relang:connect("127.0.0.1"), [{now}]).
 C1 = relang:connect("127.0.0.1")
 ```
 
+## Selecting data
+
+### db
+### table
+
+```Erlang
+relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}]).
+```
+### get
+
+```Erlang
+relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {get, <<"primarykey">>]).
+```
+### filter
+Reference filter below because they have a different syntax.
+
 ## Writing data
 
 ### Insert
