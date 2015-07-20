@@ -173,6 +173,7 @@ relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}]).
 ```Erlang
 relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {get, <<"primarykey">>]).
 ```
+
 ### filter
 Reference filter below because they have a different syntax.
 
