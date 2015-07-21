@@ -23,6 +23,7 @@
 -define(TERMTYPE_COUNT, 43).
 -define(TERMTYPE_UPDATE, 53).
 -define(TERMTYPE_INSERT, 56).
+-define(TERMTYPE_NTH, 45). %// Sequence, NUMBER -> DATUM
 -define(BRACKET, 170).
 
 -define(TERMTYPE_INNER_JOIN         , 48). % Sequence, Sequence, Function(2) -> Sequence

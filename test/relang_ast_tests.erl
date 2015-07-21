@@ -9,6 +9,16 @@ db_test() ->
 db_list_test() ->
   ?assertMatch([59,[],[{}]], relang_ast:make([{db_list}])).
 
+table_test() ->
+  Q = [{db, <<"test">>}, {table, <<"tv_shows">>}],
+  R = [15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]],
+  ?test
+  .
+table_no_db_test() ->
+  Q = [{table, <<"tv_shows">>}],
+  R = [15,[<<"tv_shows">>]],
+  ?test
+  .
 table_list_test() ->
   ?assertMatch([62,[[14,[<<"test">>],[{}]]],[{}]], relang_ast:make([
                                                                     {db, <<"test">>},
@@ -116,6 +126,12 @@ eq_join_with_index_test() ->
   R = [50,[[15,[[14,[<<"foodb">>], [{}]],<<"compounds_foods">>]],<<"compound_id">>,[15,[[14,[<<"foodb">>], [{}]],<<"compounds">>]]], [{<<"index">>, <<"lol">>}]],
   ?test.
 
-
-
 %%%
+
+nth_test() ->
+  Q = [ {db, [<<"test">>]},
+        {table, <<"tv_shows">>},
+        {nth, 120}
+             ],
+  R = [45,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]],120]],
+  ?test.
