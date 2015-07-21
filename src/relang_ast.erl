@@ -39,17 +39,9 @@ build(Query) when is_tuple(Query) ->
     'or' -> apply(?MODULE, F, [Params]) ;
     'and' -> apply(?MODULE, F, [Params]) ;
     _ -> apply(?MODULE, F, Params)
-  end
-.
-
-% We have some function name we
-func_name(F) ->
-  case F of
-    'and' ->
-      list_to_atom("r_" ++ atom_to_list(F));
-    _ ->
-      F
-  end
+  end;
+build(N) when is_number(N) ->
+  apply(?MODULE, var, [N])
   .
 
 build([], Parent) ->
@@ -63,6 +55,20 @@ build([Query | Qs], Parent) when is_tuple(Query)->
     {Func, Arguments, Options} when is_list(Arguments)-> apply(?MODULE, Func, [Parent] ++ Arguments ++ [Options])
   end,
   build(Qs, T)
+  .
+
+% We have some function name we
+func_name(F) ->
+  case F of
+    'and' ->
+      list_to_atom("r_" ++ atom_to_list(F));
+    _ ->
+      F
+  end
+  .
+
+var(N) ->
+  [?VAR, [N]]
   .
 
 %%Detail implementation of API
@@ -100,6 +106,13 @@ table_list(Db,Option) ->
    ?table_list,
    [Db],
    Option
+  ].
+
+
+table(Name) ->
+  [
+   ?TABLE,
+   [Name]
   ].
 
 table(Db, Name) ->
@@ -211,6 +224,14 @@ match(Field, Value) ->
 has_field(F) ->
   [?BRACKET, [[?VAR, [20]], F]]
   .
+
+%%% Note: not a part of REQL
+%%% @TODO: improve
+field(P, F) ->
+  [?BRACKET, [make(P), F]].
+
+nth(Sequence, N) ->
+  [?TERMTYPE_NTH, [Sequence, N]].
 
 %%% when we pass argument to 'and', because of our recursion
 %%% we don't know if an argument is compiled or not.
@@ -338,13 +359,31 @@ inner_join(Table, F) ->
   10
   .
 
+wrap_fun(Q) ->
+  [?FUNC, [
+    [?MAKE_ARRAY, gen_var(1)],
+    Q
+  ]].
+
 %%% [50,[[15,[[14,["foodb"]],"compounds_foods"]],"compound_id",[15,[[14,["foodb"]],"compounds_"]]]]
+eq_join(Sequence, LeftField, RightTableQuery, Option) when is_function(LeftField) ->
+  [
+   ?TERMTYPE_EQ_JOIN,
+   [Sequence, wrap_fun(make(LeftField(gen_var(1)))), make(RightTableQuery)],
+   Option
+  ];
 eq_join(Sequence, LeftField, RightTableQuery, Option) ->
   [
    ?TERMTYPE_EQ_JOIN,
    [Sequence, LeftField, make(RightTableQuery)],
    Option
   ].
+
+eq_join(Sequence, LeftField, RightTableQuery) when is_function(LeftField) ->
+  [
+   ?TERMTYPE_EQ_JOIN,
+   [Sequence, wrap_fun(make(LeftField(gen_var(1)))), make(RightTableQuery)]
+  ];
 eq_join(Sequence, LeftField, RightTableQuery)->
   [
    ?TERMTYPE_EQ_JOIN,

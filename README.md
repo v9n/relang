@@ -45,9 +45,29 @@ Ideally instead of chaining function like in Ruby, we put the query into
 a list of tuples. I want and I like chaining style but I don't know how
 to do that in Erlang.
 
+Each of tuples of query includes one to 3 element:
+
+```
+{operation, argument, options}
+```
+
+operation is the name that try to match official Ruby driver. Such as 
+
+```
+{table_create, argument, options}
+{insert, argument, options}
+```
+
+Argument list element can be anything, from tuple to `function` when the
+anonymous function is passed.
+
+Argument is a list, if you pass a tuple, the driver attempt to convert
+it to a list. How many items of the list is depends on how many item the
+operation accept.
+
+
 Some special function has different syntax such as changefeed and filter
 because they are a bit different.
-
 
 ## Changefeeds
 
@@ -227,6 +247,67 @@ relang:r(relang:connect(),
 ).
 ```
 
+@TODO
+Or using function instead of string
+
+```Erlang
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect(),
+  [{db, [<<"foodb">>]},
+    {table, <<"tv_shows">>},
+    {eq_join,
+      [
+        fun (X) ->
+            [
+              {field, {field, [X, <<"Parent">>]}, <<"Sub">>}
+            ]
+        end,
+        [{table, <<"compounds">>}]
+      ]
+      ,
+      [{<<"index">>, <<"different_index">>}]
+    }
+  ]
+).
+```
+
+More complex expression
+
+```
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect(),
+  [{db, [<<"foodb">>]},
+    {table, <<"tv_shows">>},
+    {eq_join,
+      [
+        fun (X) ->
+            [
+              {field, {field, [X, <<"Parent">>]}, <<"Sub">>},
+               {nth, 20}
+            ]
+        end,
+        [{table, <<"compounds">>}]
+      ]
+      ,
+      [{<<"index">>, <<"different_index">>}]
+    }
+  ]
+).
+```
+
+## Transformation
+
+### nth
+
+```
+relang:r(relang:connect(),
+  [
+    {table, <<"tv_shows">>},
+     {nth, 120}
+  ]
+).
+```
+
 ## Writing data
 
 ### Insert
@@ -253,7 +334,7 @@ relang:r(C1,
   }
   ])
 
-% Or update with function
+% @TODO Or update with function 
 relang:r(C1,
   [{db, [<<"test">>]},
   {table, <<"tv_shows">>},

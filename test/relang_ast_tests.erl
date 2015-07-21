@@ -103,35 +103,93 @@ count_test() ->
 
 eq_join_test() ->
   Q =   [{db, [<<"foodb">>]},
-             {table, <<"compounds_foods">>},
-                 {eq_join,
-                        [<<"compound_id">>,
-                                 [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
-                                       ]
-                            }
-                   ],
+         {table, <<"compounds_foods">>},
+         {eq_join,
+          [<<"compound_id">>,
+           [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+          ]
+         }
+        ],
   R = [50,[[15,[[14,[<<"foodb">>], [{}]], <<"compounds_foods">>]], <<"compound_id">>, [15, [[14,[<<"foodb">>], [{}]], <<"compounds">>]]]],
   ?test.
 
 eq_join_with_index_test() ->
   Q =   [{db, [<<"foodb">>]},
-             {table, <<"compounds_foods">>},
-                 {eq_join,
-                        [<<"compound_id">>,
-                                 [{db, [<<"foodb">>]}, {table, <<"compounds">>}],
-                                 [{<<"index">>, <<"lol">>}]
-                                       ]
-                            }
-                   ],
+         {table, <<"compounds_foods">>},
+         {eq_join,
+          [<<"compound_id">>,
+           [{db, [<<"foodb">>]}, {table, <<"compounds">>}],
+           [{<<"index">>, <<"lol">>}]
+          ]
+         }
+        ],
   R = [50,[[15,[[14,[<<"foodb">>], [{}]],<<"compounds_foods">>]],<<"compound_id">>,[15,[[14,[<<"foodb">>], [{}]],<<"compounds">>]]], [{<<"index">>, <<"lol">>}]],
   ?test.
 
+eq_join_with_function_test() ->
+  Q = [{db, [<<"foodb">>]},
+       {table, <<"compounds_foods">>},
+       {eq_join,
+        [
+         fun (X) ->
+             [
+              {field, {field, [X, <<"Parent">>]}, <<"Sub">>}
+             ]
+         end,
+         [{table, <<"compounds_">>}]
+        ]
+        ,
+        [{<<"index">>, <<"different_index">>}]
+       }
+      ],
+  R = [50,[[15,[[14,[<<"foodb">>], [{}]], <<"compounds_foods">>]],[69,[[2,[20]],[170,[[170,[[10,[20]],<<"Parent">>]],<<"Sub">>]]]],[15,[<<"compounds_">>]]],[{<<"index">>, <<"different_index">>}]],
+  ?test.
+
+eq_join_with_function_one_level_test() ->
+  Q = [{db, [<<"foodb">>]},
+       {table, <<"compounds_foods">>},
+       {eq_join,
+        [
+         fun (X) ->
+             [
+              {field, [X, <<"Parent">>]}
+             ]
+         end,
+         [{table, <<"compounds_">>}]
+        ]
+        ,
+        [{<<"index">>, <<"different_index">>}]
+       }
+      ],
+  R = [50,[[15,[[14,[<<"foodb">>], [{}]], <<"compounds_foods">>]],[69,[[2,[20]],[170,[[10,[20]],<<"Parent">>]]]],[15,[<<"compounds_">>]]],[{<<"index">>, <<"different_index">>}]],
+  ?test.
+
+eq_join_with_function_complex_espression_test() ->
+  Q = [{db, [<<"foodb">>]},
+       {table, <<"compounds_foods">>},
+       {eq_join,
+        [
+         fun (X) ->
+             [
+              {field, {field, [X, <<"Parent">>]}, <<"Sub">>},
+              {nth, 20}
+             ]
+         end,
+         [{table, <<"compounds_">>}]
+        ]
+        ,
+        [{<<"index">>, <<"different_index">>}]
+       }
+      ],
+
+  R = [50,[[15,[[14,[<<"foodb">>], [{}]], <<"compounds_foods">>]],[69,[[2,[20]],[45,[[170,[[170,[[10,[20]], <<"Parent">>]], <<"Sub">>]],20]]]],[15,[<<"compounds_">>]]],[{<<"index">>, <<"different_index">>}]],
+  ?test.
 %%%
 
 nth_test() ->
   Q = [ {db, [<<"test">>]},
         {table, <<"tv_shows">>},
         {nth, 120}
-             ],
+      ],
   R = [45,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]],120]],
   ?test.
