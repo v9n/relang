@@ -90,3 +90,32 @@ count_test() ->
   R = [43,[[15,[[14,[<<"test">>],[{}]], <<"tv_shows">>]]]],
   ?test
   .
+
+eq_join_test() ->
+  Q =   [{db, [<<"foodb">>]},
+             {table, <<"compounds_foods">>},
+                 {eq_join,
+                        [<<"compound_id">>,
+                                 [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+                                       ]
+                            }
+                   ],
+  R = [50,[[15,[[14,[<<"foodb">>], [{}]], <<"compounds_foods">>]], <<"compound_id">>, [15, [[14,[<<"foodb">>], [{}]], <<"compounds">>]]]],
+  ?test.
+
+eq_join_with_index_test() ->
+  Q =   [{db, [<<"foodb">>]},
+             {table, <<"compounds_foods">>},
+                 {eq_join,
+                        [<<"compound_id">>,
+                                 [{db, [<<"foodb">>]}, {table, <<"compounds">>}],
+                                 [{<<"index">>, <<"lol">>}]
+                                       ]
+                            }
+                   ],
+  R = [50,[[15,[[14,[<<"foodb">>], [{}]],<<"compounds_foods">>]],<<"compound_id">>,[15,[[14,[<<"foodb">>], [{}]],<<"compounds">>]]], [{<<"index">>, <<"lol">>}]],
+  ?test.
+
+
+
+%%%

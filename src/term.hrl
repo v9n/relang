@@ -25,6 +25,12 @@
 -define(TERMTYPE_INSERT, 56).
 -define(BRACKET, 170).
 
+-define(TERMTYPE_INNER_JOIN         , 48). % Sequence, Sequence, Function(2) -> Sequence
+-define(TERMTYPE_OUTER_JOIN         , 49). % Sequence, Sequence, Function(2) -> Sequence
+-define(TERMTYPE_EQ_JOIN            , 50). % Sequence, !STRING, Sequence, {index:!STRING} -> Sequence
+-define(TERMTYPE_ZIP                , 72). % Sequence -> Sequence
+-define(TERMTYPE_RANGE              , 173).%  -> Sequence                        [0, +inf)
+
 -define(DB, 14).
 -define(TABLE, 15).
 -define(TERMTYPE_GET, 16).

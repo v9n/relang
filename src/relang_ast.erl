@@ -331,3 +331,23 @@ count(S) ->
    ?TERMTYPE_COUNT,
    [S]
   ].
+
+%%% [relang:connect(), [
+%%% ]
+inner_join(Table, F) ->
+  10
+  .
+
+%%% [50,[[15,[[14,["foodb"]],"compounds_foods"]],"compound_id",[15,[[14,["foodb"]],"compounds_"]]]]
+eq_join(Sequence, LeftField, RightTableQuery, Option) ->
+  [
+   ?TERMTYPE_EQ_JOIN,
+   [Sequence, LeftField, make(RightTableQuery)],
+   Option
+  ].
+eq_join(Sequence, LeftField, RightTableQuery)->
+  [
+   ?TERMTYPE_EQ_JOIN,
+   [Sequence, LeftField, make(RightTableQuery)]
+  ]
+  .

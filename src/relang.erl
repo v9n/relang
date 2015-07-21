@@ -116,6 +116,10 @@ query(Socket, RawQuery, Option) ->
   .
 %%%
 
+%%% When the response_type is SUCCESS_PARTIAL=3, we can call next to send more data
+next(Query) ->
+  continue
+  .
 stream_stop(Socket, Token) ->
   Iolist = ["[3]"],
   Length = iolist_size(Iolist),

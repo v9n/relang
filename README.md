@@ -177,6 +177,56 @@ relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {get, <<"primarykey"
 ### filter
 Reference filter below because they have a different syntax.
 
+## Joins
+
+### Inner joins
+
+```
+relang:r(relang:connect(),
+  [{db, [<<"foodb">>]},
+    {table, <<"tv_shows">>},
+    {eq_join,
+      [<<"compound_id">>,
+        [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+      ]
+    }
+  ]
+).
+```
+
+### Equal join
+
+Simple form, join use a column on left table whose value is equal to
+index on right table. Using primary index by default
+```Erlang
+relang:r(relang:connect(),
+  [{db, [<<"foodb">>]},
+    {table, <<"tv_shows">>},
+    {eq_join,
+      [<<"compound_id">>,
+        [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+      ]
+    }
+  ]
+).
+```
+
+Or using a secondary index
+
+```
+relang:r(relang:connect(),
+  [{db, [<<"foodb">>]},
+    {table, <<"tv_shows">>},
+    {eq_join,
+      [<<"compound_id">>,
+        [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+      ],
+      [{<<"index">>, <<"different_index">>}]
+    }
+  ]
+).
+```
+
 ## Writing data
 
 ### Insert
