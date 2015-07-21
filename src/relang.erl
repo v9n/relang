@@ -21,6 +21,9 @@ stop() ->
   ok.
 
 %% http://erlang.org/pipermail/erlang-questions/2004-December/013734.html
+connect() ->
+  connect("127.0.0.1")
+  .
 connect(RethinkDBHost) ->
   {ok, Sock} = gen_tcp:connect(RethinkDBHost, 28015,
                                [binary, {packet, 0}, {active, false}]),
