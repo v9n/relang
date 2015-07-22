@@ -305,7 +305,7 @@ during(X, Y) ->
 %Working with filter
 row(Q) ->
   [?FUNC, [
-    [?MAKE_ARRAY, gen_var(1)],
+    [?TERMTYPE_MAKE_ARRAY, gen_var(1)],
     relang_ast:make(Q)
   ]].
 
@@ -330,7 +330,7 @@ row(Var, Q) ->
  %   ]]
 
   [?FUNC, [
-    [?MAKE_ARRAY, gen_var(1)],
+    [?TERMTYPE_MAKE_ARRAY, gen_var(1)],
     relang_ast:make(Q)
   ]]
   .
@@ -354,7 +354,7 @@ inner_join(Table, F) ->
 %%% @TODO: to make test work, detect environment and always return var number 20
 wrap_fun(Q, Var) ->
   [?FUNC, [
-    [?MAKE_ARRAY, Var],
+    [?TERMTYPE_MAKE_ARRAY, Var],
     Q
   ]].
 
@@ -387,3 +387,11 @@ eq_join(Sequence, LeftField, RightTableQuery)->
    [Sequence, LeftField, make(RightTableQuery)]
   ]
   .
+
+%% Geospartial command
+circle({Long, Lat}, Radius) ->
+  [?TERMTYPE_CIRCLE, [[?TERMTYPE_MAKE_ARRAY, [Long, Lat]], Radius]].
+
+point(Long, Lat) ->
+  [?TERMTYPE_POINT, {Long, Lat}].
+

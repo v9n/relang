@@ -379,6 +379,41 @@ relang:r(C1,
 relang:query(C, [ {db, [<<"test">>]}, {table, [<<"tv_shows">>]}, {count}]).
 ```
 
+## Geospatial commands
+
+### circle
+
+```
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect(), [{circle, [{-122.423246, 37.779388}, 1000]}]).
+
+```
+
+### distance
+
+### fill
+
+### geojson
+
+### to_geojson
+
+### get_intersecting
+
+### get_nearest
+
+### includes
+
+### intersects
+
+### line
+
+### point
+
+### polygon
+
+### polygon_sub
+
+
 # Development
 
 Make sure to use `tcpdump` during development for ReQL inspect
