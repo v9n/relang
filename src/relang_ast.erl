@@ -394,6 +394,11 @@ eq_join(Sequence, LeftField, RightTableQuery)->
 circle({Long, Lat}, Radius) ->
   [?TERMTYPE_CIRCLE, [[?TERMTYPE_MAKE_ARRAY, [Long, Lat]], Radius]].
 
+%%% Compute the distance between a point and another geometry object. At least one of the geometry objects specified must be a point.
+distance([P1, P2], O) ->
+  [?TERMTYPE_DISTANCE, [P1, P2], O]
+  .
+
 point(Long, Lat) ->
   [?TERMTYPE_POINT, [Long, Lat]].
 

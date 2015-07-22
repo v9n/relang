@@ -390,6 +390,19 @@ relang:r(relang:connect(), [{circle, [{-122.423246, 37.779388}, 1000]}]).
 
 ### distance
 
+```Erlang
+relang:r(relang:connect(), 
+  [
+    {distance, 
+      [
+        relang:r([{point, [-122.423246,37.779388]}]),
+        relang:r([{point, [-117.220406,32.719464]}])
+      ],
+      [{unit, km}]
+    }
+  ]).
+```
+
 ### fill
 
 ### geojson
@@ -415,7 +428,7 @@ relang:r([{point, [-122.423246, 37.779388]}]).
 
 ### polygon
 
-```
+```Erlang
 l(relang). l(relang_ast). l(log).
 relang:r(relang:connect(),  [{polygon,
         [
