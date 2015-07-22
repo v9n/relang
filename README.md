@@ -419,6 +419,17 @@ relang:r(relang:connect(),
 
 ### line
 
+```Erlang
+relang:r([
+   {line,
+    [
+     [-122.423246,37.779388],
+     [-121.886420,37.329898]
+    ]
+   }
+  ]).
+```
+
 ### point
 
 ```Erlang

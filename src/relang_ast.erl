@@ -39,7 +39,8 @@ build(Query) when is_tuple(Query) ->
     'or' -> apply(?MODULE, F, [Params]) ;
     'and' -> apply(?MODULE, F, [Params]) ;
     %%% Geospatial command receive variadic parameter
-    'polygon' -> apply(?MODULE, F, [Params]) ;
+    polygon -> apply(?MODULE, F, [Params]) ;
+    line -> apply(?MODULE, F, [Params]) ;
     _ -> apply(?MODULE, F, Params)
   end;
 build(N) when is_number(N) ->
@@ -404,4 +405,8 @@ point(Long, Lat) ->
 
 polygon(Polygons) ->
   [?TERMTYPE_POLYGON, lists:map(fun(V) -> [?TERMTYPE_MAKE_ARRAY, V] end, Polygons)]
+  .
+
+line(Lines) ->
+  [?TERMTYPE_LINE, lists:map(fun(V) -> [?TERMTYPE_MAKE_ARRAY, V] end, Lines)]
   .
