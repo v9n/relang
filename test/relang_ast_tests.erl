@@ -26,6 +26,27 @@ table_list_test() ->
                                                                     {table_list}
                                                                    ])).
 
+table_create_no_db_test() ->
+  Q = [{table_create, lol}],
+  R = [60,[lol]],
+  ?test.
+
+table_drop_no_db_test() ->
+  Q = [{table_drop, lol}],
+  R = [61,[lol]],
+  ?test.
+
+table_create_test() ->
+  Q = [{db, test}, {table_create, tv_shows}],
+  R = [60,[[14,[test]],tv_shows]],
+  ?test.
+
+table_drop_test() ->
+  Q = [{db, test}, {table_drop, tv_shows}],
+  R = [61,[[14,[test]], tv_shows]],
+  ?test
+  .
+
 get_test() ->
   Q = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {get, <<"key">>}],
   R = [16, [[15,[[14,[<<"test">>]],<<"tv_shows">>]], <<"key">>]],

@@ -49,6 +49,7 @@
 -define(db_list, 59).
 -define(table_list, 62).
 -define(TABLE_CREATE, 60).
+-define(TERMTYPE_TABLE_DROP, 61).
 
 -define(FUNC, 69).
 

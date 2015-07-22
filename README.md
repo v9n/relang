@@ -168,6 +168,24 @@ relang:r(relang:connect("127.0.0.1"), [{now}]).
 C1 = relang:connect("127.0.0.1")
 ```
 
+## Manipulating tables
+
+#### table_create
+
+```Erlang
+relang:r(relang:connect(), [{table_create, geo}]).
+% or with db
+relang:r(relang:connect(), [{db, test}, {table_create, geo}]).
+```
+
+#### table_drop
+
+```Erlang
+relang:r(relang:connect(), [{table_drop, geo}]).
+% or with db
+relang:r(relang:connect(), [{db, test}, {table_drop, geo}]).
+```
+
 ## Selecting data
 
 ### db

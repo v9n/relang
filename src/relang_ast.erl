@@ -132,9 +132,27 @@ get(Table, Key) ->
    [Table, Key]
   ].
 
+table_create(Name) ->
+  [
+   ?TABLE_CREATE,
+   [Name]
+  ].
+
 table_create(Db, Name) ->
   [
    ?TABLE_CREATE,
+   [Db, Name]
+  ].
+
+table_drop(Name) ->
+  [
+   ?TERMTYPE_TABLE_DROP,
+   [Name]
+  ].
+
+table_drop(Db, Name) ->
+  [
+   ?TERMTYPE_TABLE_DROP,
    [Db, Name]
   ].
 
@@ -399,6 +417,10 @@ circle({Long, Lat}, Radius) ->
 distance([P1, P2], O) ->
   [?TERMTYPE_DISTANCE, [P1, P2], O]
   .
+
+%%% Convert a Line object into a Polygon object. If the last point does not specify the same coordinates as the first point, polygon will close the polygon by connecting them.
+fill(Object) ->
+  [?TERMTYPE_FILL, [Object]].
 
 point(Long, Lat) ->
   [?TERMTYPE_POINT, [Long, Lat]].
