@@ -80,11 +80,13 @@ db_create(Name) ->
   ]
 .
 
+db(DbName, O) ->
+  [ ?DB, [DbName], O].
+
 db(DbName) ->
   [
    ?DB,
-   [DbName],
-   [{}]
+   [DbName]
   ].
 
 db_list() ->
