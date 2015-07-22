@@ -38,6 +38,8 @@ build(Query) when is_tuple(Query) ->
   case F of
     'or' -> apply(?MODULE, F, [Params]) ;
     'and' -> apply(?MODULE, F, [Params]) ;
+    %%% Geospatial command receive variadic parameter
+    'polygon' -> apply(?MODULE, F, [Params]) ;
     _ -> apply(?MODULE, F, Params)
   end;
 build(N) when is_number(N) ->
@@ -393,5 +395,8 @@ circle({Long, Lat}, Radius) ->
   [?TERMTYPE_CIRCLE, [[?TERMTYPE_MAKE_ARRAY, [Long, Lat]], Radius]].
 
 point(Long, Lat) ->
-  [?TERMTYPE_POINT, {Long, Lat}].
+  [?TERMTYPE_POINT, [Long, Lat]].
 
+polygon(Polygons) ->
+  [?TERMTYPE_POLYGON, lists:map(fun(V) -> [?TERMTYPE_MAKE_ARRAY, V] end, Polygons)]
+  .

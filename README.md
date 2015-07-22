@@ -383,10 +383,9 @@ relang:query(C, [ {db, [<<"test">>]}, {table, [<<"tv_shows">>]}, {count}]).
 
 ### circle
 
-```
+```Erlang
 l(relang). l(relang_ast). l(log).
 relang:r(relang:connect(), [{circle, [{-122.423246, 37.779388}, 1000]}]).
-
 ```
 
 ### distance
@@ -409,7 +408,49 @@ relang:r(relang:connect(), [{circle, [{-122.423246, 37.779388}, 1000]}]).
 
 ### point
 
+```Erlang
+l(relang). l(relang_ast). l(log).
+relang:r([{point, [-122.423246, 37.779388]}]).
+```
+
 ### polygon
+
+```
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect(),  [{polygon,
+        [
+          [-122.423246,37.779388],
+          [-122.423246,37.329898],
+          [-121.886420,37.329898],
+          [-121.886420,37.779388]
+        ]
+       }
+      ]
+).
+```
+
+Or using in other expression
+
+```Erlang
+(relang). l(relang_ast). l(log).
+relang:r(relang:connect(),     [
+      {table, geo},
+      {insert, [[
+        {id, 101},
+        {rectangle, relang:r([{polygon,
+            [
+              [-122.423246,37.779388],
+              [-122.423246,37.329898],
+              [-121.886420,37.329898],
+              [-121.886420,37.779388]
+            ]
+           }
+          ])
+        }
+      ]]}
+    ]
+).
+```
 
 ### polygon_sub
 
