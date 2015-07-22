@@ -171,18 +171,15 @@ filter(Sequence, F) when is_list(F) ->
     F]
   ];
 filter(Sequence, F) when is_function(F) ->
-  Q = fun(Query) ->
-    row(Query)
-  end,
   [
     ?FILTER,
-    [Sequence, F(Q)]
+    [Sequence, wrap_fun(make(F(gen_var(1))), gen_var(1))]
   ].
 
 eq(Field, Value) ->
   [
    ?EQ,
-   [[?BRACKET, [[?VAR, [20]], Field]], Value]
+   [make(Field), Value]
    %[{}]
   ]
   .
@@ -190,7 +187,7 @@ eq(Field, Value) ->
 gt(Field, Value) ->
   [
    ?GT,
-   [[?BRACKET, [[?VAR, [20]], Field]], Value]
+   [make(Field), Value]
    %[]
   ]
   .
@@ -198,7 +195,7 @@ gt(Field, Value) ->
 lt(Field, Value) ->
   [
    ?LT,
-   [[?BRACKET, [[?VAR, [20]], Field]], Value]
+   [make(Field), Value]
    %[]
   ]
   .
@@ -206,7 +203,7 @@ lt(Field, Value) ->
 le(Field, Value) ->
   [
    ?LE,
-   [[?BRACKET, [[?VAR, [20]], Field]], Value]
+   [make(Field), Value]
    %[]
   ]
   .
@@ -214,7 +211,7 @@ le(Field, Value) ->
 match(Field, Value) ->
   [
    ?MATCH,
-   [[?BRACKET, [[?VAR, [20]], Field]], Value]
+   [make(Field), Value]
   ]
   .
 
@@ -359,9 +356,10 @@ inner_join(Table, F) ->
   10
   .
 
-wrap_fun(Q) ->
+%%% @TODO: to make test work, detect environment and always return var number 20
+wrap_fun(Q, Var) ->
   [?FUNC, [
-    [?MAKE_ARRAY, gen_var(1)],
+    [?MAKE_ARRAY, Var],
     Q
   ]].
 
@@ -373,7 +371,7 @@ zip(Sequence) ->
 eq_join(Sequence, LeftField, RightTableQuery, Option) when is_function(LeftField) ->
   [
    ?TERMTYPE_EQ_JOIN,
-   [Sequence, wrap_fun(make(LeftField(gen_var(1)))), make(RightTableQuery)],
+   [Sequence, wrap_fun(make(LeftField(gen_var(1))), gen_var(1)), make(RightTableQuery)],
    Option
   ];
 eq_join(Sequence, LeftField, RightTableQuery, Option) ->
@@ -386,7 +384,7 @@ eq_join(Sequence, LeftField, RightTableQuery, Option) ->
 eq_join(Sequence, LeftField, RightTableQuery) when is_function(LeftField) ->
   [
    ?TERMTYPE_EQ_JOIN,
-   [Sequence, wrap_fun(make(LeftField(gen_var(1)))), make(RightTableQuery)]
+   [Sequence,  wrap_fun(make(LeftField(gen_var(1))), gen_var(1)), make(RightTableQuery)]
   ];
 eq_join(Sequence, LeftField, RightTableQuery)->
   [

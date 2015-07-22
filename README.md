@@ -104,60 +104,48 @@ relang:r(relang:connect("127.0.0.1"),
 It's not powerful enough so we come up With functional style
 
 ```Erlang
+relang:r(relang:connect(),
+[{db, [<<"test">>]}, {table, [<<"tv_shows">>]}, 
+                  {filter, fun(X) ->
+                               [
+                                  {'and', [
+                                           {gt, [{field, [X, <<"age">>]}, 22]},
+                                           {lt, [{field, [X, <<"age">>]}, 25]},
+                                           {match, [{field, [X, <<"name">>]},  <<"^k">>]}
+                                          ]}
+                                 ]
+                           end}]
+).
 
 relang:r(C, [{db, [<<"test">>]}, {table,
 [<<"tv_shows">>]}, {filter, fun(X) ->
-  X([
+  [
     {'and', [
-      {gt, [<<"age">>, 22]},
-      {lt, [<<"age">>, 25]},
-      {match, [<<"name">>,  <<"^k">>]}
+      {gt, [{field, [X, <<"age">>]}, 22]},
+      {lt, [{field, [X, <<"age">>]}, 25]}
     ]}
-  ])
-end}]).
-
-relang:r(C, [{db, [<<"test">>]}, {table,
-[<<"tv_shows">>]}, {filter, fun(X) ->
-  X([
-    {'and', [
-      {gt, [<<"age">>, 22]},
-      {lt, [<<"age">>, 25]}
-    ]}
-  ])
+  ]
 end}]).
 
 # find user 22 -> 25 of age, name starts with `k`, and opt-in to `show`
 relang:r(C, [{db, [<<"test">>]}, {table,
 [<<"tv_shows">>]}, {filter, fun(X) ->
-  X([
+  [
     {'and', [
-      {gt, [<<"age">>, 22]},
-      {lt, [<<"age">>, 25]},
-      {match, [<<"name">>,  <<"^k">>]},
-      {has_field, <<"show">>
+      {gt, [{field, [X, <<"age">>]}, 22]},
+      {lt, [{field, [X, <<"age">>]}, 25]},
+      {match, [{field, [X, <<"name">>]},  <<"^k">>]},
+      {field, <<"show">>
     ]}
-  ])
+  ]
 end}]).
 
 l(relang). l(relang_ast). l(log).
 relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
 [<<"tv_shows">>]}, {filter, fun(X) ->
-  X([
-    {'and', [
-      {gt, [<<"age">>, 22]},
-      {lt, [<<"age">>, 25]},
-      {match, [<<"name">>,  <<"^k">>]},
-      {has_field, <<"show">>}
-    ]}
-  ])
-end}]).
-
-l(relang). l(relang_ast). l(log).
-relang:r(relang:connect("127.0.0.1"), [{db, [<<"test">>]}, {table,
-[<<"tv_shows">>]}, {filter, fun(X) ->
-  X([
-      {has_field, <<"show">>}
-  ])
+  [
+    {field, [X, <<"show">>]}
+  ]
 end}]).
 
 ```

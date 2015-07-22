@@ -77,23 +77,73 @@ update_with_option() ->
   ?assertMatch(R, relang_ast:make(Q))
   .
 
-filter_test() ->
-  ?assertMatch([39,
-                [[15,[[14,[<<"test">>],[{}]],<<"tv_shows">>]],
-                 [69,[[2,[20]],[67,[[67,[[21,[[170,[[10,[20]], <<"age">>]],22]],[19,[[170,[[10,[20]],<<"age">>]],25]]]],[97,[[170,[[10,[20]],<<"name">>]],<<"^k">>]]]]]]
-                ]],
-               relang_ast:make(
-                 [{db, [<<"test">>]}, {table, [<<"tv_shows">>]}, 
+filter_exact_test() ->
+  Q = [{db, [<<"test">>]},
+        {table, [<<"tv_shows">>]},
+        {filter, [
+          [{<<"age">>, 30}]
+         ]}
+      ],
+  R = [39,[[15,[[14,[<<"test">>], [{}]],<<"tv_shows">>]],[{<<"age">>, 30}]]],
+  ?test.
+
+filter_exact_match_multi_field_test() ->
+  Q =[ {db, [<<"test">>]},
+        {table, [<<"tv_shows">>]},
+        {filter, [
+          [{<<"age">>, 30},
+          {<<"name">>, <<"kurei">>},
+          {<<"show">>, 1}]
+        ]}
+      ],
+  R = [39,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]], [{<<"age">>, 30}, {<<"name">>, <<"kurei">>}, {<<"show">>,1}]]],
+  ?test.
+
+filter_function_simple_test() ->
+  R = [39,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]],[69,[[2,[20]],[17,[[170,[[10,[20]],<<"name">>]], <<"lol">>]]]]]],
+  Q = [{db, [<<"test">>]},
+          {table, [<<"tv_shows">>]}, 
+          {filter, fun(X) ->
+                       [
+                           {eq, [{field, [X, <<"name">>]},  <<"lol">>]}
+                         ]
+                   end}],
+  ?test.
+
+filter_function_test() ->
+  R = [39,[
+           [15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]],
+           [69,
+            [[2,[20]],
+              [67,
+                [[67,
+                  [[21,[[170,[[10,[20]], <<"age">>]],22]],[19,[[170,[[10,[20]],<<"age">>]],25]]]],
+                 [97,[[170,[[10,[20]],<<"name">>]], <<"^k">>]]]
+              ]
+            ]
+          ]
+          ]],
+  Q = [{db, [<<"test">>]}, {table, [<<"tv_shows">>]}, 
                   {filter, fun(X) ->
-                               X([
+                               [
                                   {'and', [
-                                           {gt, [<<"age">>, 22]},
-                                           {lt, [<<"age">>, 25]},
-                                           {match, [<<"name">>,  <<"^k">>]}
+                                           {gt, [{field, [X, <<"age">>]}, 22]},
+                                           {lt, [{field, [X, <<"age">>]}, 25]},
+                                           {match, [{field, [X, <<"name">>]},  <<"^k">>]}
                                           ]}
-                                 ])
-                           end}]
-                )).
+                                 ]
+                           end}],
+  ?test.
+
+filter_function_has_field_test()->
+  R = [39,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]],[69,[[2,[20]],[170,[[10,[20]],<<"show">>]]]]]],
+  Q = [{db, [<<"test">>]}, {table,
+        [<<"tv_shows">>]}, {filter, fun(X) ->
+        [
+          {field, [X, <<"show">>]}
+        ]
+      end}],
+  ?test.
 
 count_test() ->
   Q = [{db, [<<"test">>]}, {table, [<<"tv_shows">>]}, {count}],

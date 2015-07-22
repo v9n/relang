@@ -204,6 +204,16 @@ run() ->
   Qtfilter = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {filter, [{<<"age">>, 30}]}],
   Qtget = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {get, <<"1a98d636-1056-4579-84fd-c2ce33138792">>}],
 
+  QtEqZip = [{db, [<<"foodb">>]},
+              {table, <<"compounds_foods">>},
+              {eq_join,
+                   [<<"compound_id">>,
+                    [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+                   ]
+                 },
+              {zip}
+            ],
+
   io:format("LIST DB ~n======~n"),
   query(RethinkSock, Qlist),
 
@@ -228,6 +238,9 @@ run() ->
 
   io:format("Single Get ~n======~n"),
   query(RethinkSock, Qtget),
+
+  io:format("Equal Join with ZIp ~n======~n"),
+  query(RethinkSock, QtEqZip),
 
   io:format("Changefeed ~n======~n"),
   query(RethinkSock, Qfchange),
