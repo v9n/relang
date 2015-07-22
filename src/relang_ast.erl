@@ -162,17 +162,35 @@ insert(Table, Item) ->
    [Table, Item]
   ].
 
+update(Table, Update) when is_function(Update)->
+  Var = gen_var(1),
+  U   = Update(Var),
+  [
+   ?TERMTYPE_UPDATE,
+   [Table, wrap_fun(U, Var)]
+  ];
+
 update(Table, Item) ->
   [
    ?TERMTYPE_UPDATE,
    [Table, Item]
   ].
+
+update(Table, Update, Option) when is_function(Update)->
+  Var = gen_var(1),
+  U   = Update(Var),
+  [
+   ?TERMTYPE_UPDATE,
+   [Table, wrap_fun(U, Var)],
+   Option
+  ];
 update(Table, Item, Option) ->
   [
    ?TERMTYPE_UPDATE,
    [Table, Item],
    Option
   ].
+
 
 changes(Table, Function) ->
   [
@@ -330,6 +348,9 @@ row(Q) ->
     relang_ast:make(Q)
   ]].
 
+default(Item, Value)->
+  [?TERMTYPE_DEFAULT, [Item, Value]]
+  .
 
 row(Var, Q) ->
  %   [69, [

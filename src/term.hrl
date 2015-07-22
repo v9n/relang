@@ -62,6 +62,8 @@
 -define(TERMTYPE_AND, 67).
 -define(TERMTYPE_OR, 66).
 
+-define(TERMTYPE_DEFAULT , 92). % Top, Top -> Top
+
 -define(TERMTYPE_GEOJSON , 157).           % OBJECT -> PSEUDOTYPE(GEOMETRY)
 -define(TERMTYPE_TO_GEOJSON , 158).        % PSEUDOTYPE(GEOMETRY) -> OBJECT
 -define(TERMTYPE_POINT , 159).             % NUMBER, NUMBER -> PSEUDOTYPE(GEOMETRY)

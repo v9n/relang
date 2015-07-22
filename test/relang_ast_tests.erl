@@ -80,6 +80,27 @@ update_single_test() ->
   ?assertMatch(R, relang_ast:make(Q))
   .
 
+update_nested_field_test() ->
+  Q = [
+        {table, users},
+        {get, 10001},
+        {update, [
+                  [
+                   {contact, [{phone, [{cell, <<"408-555-4242">>}]}]}
+                  ]
+                 ]}
+      ],
+  R = [53,[
+           [16,[[15,[users]],10001]],
+           [{contact,
+             [{phone,
+               [{cell, <<"408-555-4242">>}]
+              }]
+            }]
+          ]],
+  ?assertMatch(R, relang_ast:make(Q))
+  .
+
 update_with_option() ->
   Q = [ {db, [<<"test">>]},
         {table, [<<"tv_shows">>]},
@@ -96,6 +117,27 @@ update_with_option() ->
        ]],
   ?test
   .
+
+update_using_function_test() ->
+  Q =
+  [
+    {table, posts},
+    {update,
+      fun(Post) ->
+        [{
+          views,
+            relang:r([
+                {field, [Post, views]},
+                {add, 100},
+                {default, 20}
+              ])
+        }]
+      end
+    }
+  ],
+  ?showResult,
+  R = [53,[[15,[posts]], [69,[[2,[20]], [{views,[92,[[24,[[170,[[10,[20]],views]],100]],20]]}] ]]]],
+  ?test.
 
 filter_exact_test() ->
   Q = [{db, [<<"test">>]},
@@ -392,3 +434,29 @@ line_using_in_other_expression_test()->
     ]]
   ,
   ?test.
+
+fill_using_in_other_expression_test() ->
+  Q =
+  [
+    {table, geo},
+    {get, 201},
+    {update,
+      fun(Doc) ->
+        [{
+          rectangle,
+            relang:r([
+                {field, [Doc, rectangle]},
+                {fill}
+              ])
+        }]
+      end,
+      [{non_atomic, true}]
+    }
+  ],
+  R = [53,[[16,[[15,[geo]],201]],[69,[[2,[20]], [{rectangle, [167,[[170,[[10,[20]],rectangle]]]]}] ]]], [{non_atomic, true}]],
+  ?test.
+
+default_test() ->
+  R = relang_ast:default(conmeo, a),
+  Q = [92, [conmeo, a]],
+  ?assertMatch(R, Q).

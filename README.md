@@ -29,6 +29,14 @@ erl -pa ebin -pa deps/protobuffs/ebin deps/jsx/ebin
 
 # Using
 
+It's quite hard for me(an amateur Erlang programmer) to represent JSON
+in Erlang world. Later Erlang version has map feature which also help at
+some point so I opt-in to use them.
+
+The downside is that `relang` won't run on old Erlang compiler. So keep
+that in mind and please submit PR to improve syntax, make it easier to
+read.
+
 ```Erlang
 
 %% Creation conection
@@ -377,36 +385,56 @@ relang:r(C1,
   }
   ])
 
-% @TODO Or update with function 
-relang:r(C1,
-  [{db, [<<"test">>]},
-  {table, <<"tv_shows">>},
-  {get, <<"6b443331-d7c9-4304-867d-251db183446f">>},
-  {update,
-    fun (X) ->
-    end
-  }
-  ])
+% Or update nested field
+relang:r(relang:connect(),
+  [
+    {table, users},
+    {get, 10001},
+    {update, [
+              [
+               {contact, [{phone, [{cell, <<"408-555-4242">>}]}]}
+              ]
+             ]}
+  ]
+).
+
+% Or update with function 
+relang:r(relang:connect(),
+  [
+    {table, posts},
+    {update,
+      fun(Post) ->
+        [{
+          views,
+            relang:r([
+                {field, [Post, views]},
+                {add, 100},
+                {default, 20}
+              ])
+        }]
+      end
+    }
+  ]).
 ```
 
 ## Aggregation
 
 ### Count
 
-```
+```Erlang
 relang:query(C, [ {db, [<<"test">>]}, {table, [<<"tv_shows">>]}, {count}]).
 ```
 
 ## Geospatial commands
 
-### circle
+#### circle
 
 ```Erlang
 l(relang). l(relang_ast). l(log).
 relang:r(relang:connect(), [{circle, [{-122.423246, 37.779388}, 1000]}]).
 ```
 
-### distance
+#### distance
 
 ```Erlang
 relang:r(relang:connect(), 
@@ -421,21 +449,75 @@ relang:r(relang:connect(),
   ]).
 ```
 
-### fill
+#### fill
 
-### geojson
+Convert a Line object into a Polygon object. If the last point does not
+specify the same coordinates as the first point, polygon will close the
+polygon by connecting them.
 
-### to_geojson
+*Example:* Create a line object and then convert it to a polygon.
 
-### get_intersecting
+```
+relang:r(relang:connect(),
+  [
+    {table, geo},
+    {insert, [[
+      {id, 201},
+      {rectangle, relang:r([
+        {line, [
+          [-122.423246,37.779388],
+          [-122.423246,37.329898],
+          [-121.886420,37.329898],
+          [-121.886420,37.779388]
+        ]}
+      ])}
+    ]]}
+  ]
+).
 
-### get_nearest
+% Try to select it back, for fun :)
+relang:r(relang:connect(),
+  [
+    {table, geo},
+    {get, 201}
+  ]
+).
 
-### includes
+% using fill to turn it into plolygon
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect(),
+  [
+    {table, geo},
+    {get, 201},
+    {update,
+      fun(Doc) ->
+        [{
+          rectangle,
+            relang:r([
+                {field, [Doc, rectangle]},
+                {fill}
+              ])
+        }]
+      end,
+      [{non_atomic, true}]
+    }
+  ]
+).
+```
 
-### intersects
+#### geojson
 
-### line
+#### to_geojson
+
+#### get_intersecting
+
+#### get_nearest
+
+#### includes
+
+#### intersects
+
+#### line
 
 ```Erlang
 relang:r([
