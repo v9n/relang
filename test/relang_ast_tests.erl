@@ -2,6 +2,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -define(test, ?assertMatch(R, relang_ast:make(Q))).
+-define(showResult, io:format("R = ~p~n", [relang_ast:make(Q)])).
 
 db_test() ->
   ?assertMatch([14,[<<"test">>]], relang_ast:make([{db, <<"test">>}])).
@@ -340,4 +341,33 @@ line_test()->
   ]
   ,
   R = [160,[[2,[-122.423246,37.779388]],[2,[-121.88642,37.329898]]]],
+  ?test.
+
+line_using_in_other_expression_test()->
+  Q =
+  [
+    {table, geo},
+    {insert, [[
+      {id, 101},
+      {route,
+        relang:r([
+          {line, [
+            [-122.423246,37.779388], [-121.886420,37.329898]
+          ]}
+        ])
+      }
+    ]]}
+  ]
+  ,
+  R =
+    [56, [
+        [15, [geo]], [
+            {id, 101},
+            {route, [160, [
+                [2, [-122.423246, 37.779388]],
+                [2, [-121.88642, 37.329898]]
+            ]]}
+        ]
+    ]]
+  ,
   ?test.
