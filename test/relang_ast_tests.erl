@@ -193,3 +193,19 @@ nth_test() ->
       ],
   R = [45,[[15,[[14,[<<"test">>], [{}]], <<"tv_shows">>]],120]],
   ?test.
+
+zip_test() ->
+  Q =   [{db, [<<"foodb">>]},
+         {table, <<"compounds_foods">>},
+         {eq_join,
+          [<<"compound_id">>,
+           [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+          ],
+          [{<<"index">>, <<"lol">>}]
+         },
+         {zip}
+        ],
+  R = [72,[[50,[[15,[[14,[<<"foodb">>], [{}]],<<"compounds_foods">>]],<<"compound_id">>,[15,[[14,[<<"foodb">>], [{}]],<<"compounds">>]]],[{<<"index">>, <<"lol">>}]]]],
+  ?test.
+
+

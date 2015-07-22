@@ -365,6 +365,10 @@ wrap_fun(Q) ->
     Q
   ]].
 
+zip(Sequence) ->
+  [?TERMTYPE_ZIP, [Sequence]]
+  .
+
 %%% [50,[[15,[[14,["foodb"]],"compounds_foods"]],"compound_id",[15,[[14,["foodb"]],"compounds_"]]]]
 eq_join(Sequence, LeftField, RightTableQuery, Option) when is_function(LeftField) ->
   [
