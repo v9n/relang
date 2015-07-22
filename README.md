@@ -295,6 +295,43 @@ relang:r(relang:connect(),
 ).
 ```
 
+### zip
+
+Using with `eq_join`
+
+```Erlang
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect(),
+  [{db, [<<"foodb">>]},
+    {table, <<"compounds_foods">>},
+    {eq_join,
+      [<<"compound_id">>,
+        [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+      ],
+      [{<<"index">>, <<"second_index">>}]
+    },
+    {zip}
+  ]
+).
+```
+
+Or without index:
+
+```Erlang
+l(relang). l(relang_ast). l(log).
+relang:r(relang:connect(),
+  [{db, [<<"foodb">>]},
+    {table, <<"compounds_foods">>},
+    {eq_join,
+      [<<"compound_id">>,
+        [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
+      ]
+    },
+    {zip}
+  ]
+).
+```
+
 ## Transformation
 
 ### nth
