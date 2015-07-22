@@ -216,13 +216,6 @@ match(Field, Value) ->
   .
 
 %%% Note: not a part of REQL
-%%% @TODO: Refactor and move it out
-%%% has_field has no function body. no option
-has_field(F) ->
-  [?BRACKET, [[?VAR, [20]], F]]
-  .
-
-%%% Note: not a part of REQL
 %%% @TODO: improve
 field(P, F) ->
   [?BRACKET, [make(P), F]].
