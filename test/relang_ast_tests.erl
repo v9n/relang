@@ -470,3 +470,32 @@ geojson_test()->
   R = [157,[ [{type,'Point'},{coordinates,[2,[-122.423246,37.779388]]}] ]],
   ?test.
 
+geojson_using_in_expression_test()->
+  T = [{type,'Point'},
+       {coordinates, [ -122.423246, 37.779388 ]
+       }
+      ]
+      ,
+  Q = [
+       {table, geo},
+       {insert, [[
+        {id, sfo},
+        {name, <<"San Francisco">>},
+        {location, relang:r([{geojson, T}])}
+                ]]}
+      ],
+  R =
+    [56, [
+        [15, [geo]], [
+            {id, sfo},
+            {name, <<"San Francisco">>},
+            {location, [157, [
+                [
+                  {type, 'Point'},
+                  {coordinates, [2, [-122.423246, 37.779388]]}
+                ]
+            ]]}
+        ]
+    ]],
+
+  ?test.
