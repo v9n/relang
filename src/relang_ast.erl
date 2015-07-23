@@ -41,6 +41,7 @@ build(Query) when is_tuple(Query) ->
     %%% Geospatial command receive variadic parameter
     polygon -> apply(?MODULE, F, [Params]) ;
     line -> apply(?MODULE, F, [Params]) ;
+    geojson -> apply(?MODULE, F, [Params]) ;
     _ -> apply(?MODULE, F, Params)
   end;
 build(N) when is_number(N) ->
@@ -453,3 +454,29 @@ polygon(Polygons) ->
 line(Lines) ->
   [?TERMTYPE_LINE, lists:map(fun(V) -> [?TERMTYPE_MAKE_ARRAY, V] end, Lines)]
   .
+
+make_array(A) -> [?TERMTYPE_MAKE_ARRAY, A].
+
+%%% Note: this is not a part of ReQL
+%%% We try to turn any array into ReQL MAKE_ARRAY
+to_rethinkdb_type(O) when is_list(O)->
+  A = lists:map(fun(V) ->
+            case V of
+              {Key, Val} -> {Key, to_rethinkdb_type(Val)};
+              _ -> V
+            end
+            end, O),
+  make_array(A)
+  ;
+to_rethinkdb_type(O) -> O.
+
+geojson(O) ->
+  A =
+    lists:map(
+      fun(V) ->
+            case V of
+              {Key, Val} -> {Key, to_rethinkdb_type(Val)};
+              _ -> V
+            end
+      end, O),
+  [?TERMTYPE_GEOJSON, [A]].

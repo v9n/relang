@@ -507,6 +507,15 @@ relang:r(relang:connect(),
 
 #### geojson
 
+```
+T = [{type,'Point'},
+       {coordinates, [ -122.423246, 37.779388 ]
+       }
+      ].
+relang:r(relang:connect(), [{geojson, T]).
+```
+
+
 #### to_geojson
 
 #### get_intersecting
