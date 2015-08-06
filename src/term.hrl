@@ -59,6 +59,28 @@
 -define(DIV, 27). %% NUMBER... 
 -define(MOD, 28). %% NUMBER, NUMBER -> NUMBER
 
+-define(TERMTYPE_GET_FIELD  , 31). %% OBJECT, STRING -> DATUM
+                          %% | Sequence, STRING -> Sequence
+                          %% Return an array containing the keys of the object.
+-define(TERMTYPE_KEYS , 94). %% OBJECT -> ARRAY
+                    %% Creates an object
+-define(TERMTYPE_OBJECT , 143). %% STRING, DATUM, ... -> OBJECT
+                      %% Check whether an object contains all the specified fields,
+                      %% or filters a sequence so that all objects inside of it
+                      %% contain all the specified fields.
+-define(TERMTYPE_HAS_FIELDS , 32). %% OBJECT, Pathspec... -> BOOL
+                      %% x.with_fields(...) <,> x.has_fields(...).pluck(...)
+-define(TERMTYPE_WITH_FIELDS , 96). %% Sequence, Pathspec... -> Sequence
+                      %% Get a subset of an object by selecting some attributes to preserve,
+                      %% or map that over a sequence.  (Both pick and pluck, polymorphic.)
+-define(TERMTYPE_PLUCK    , 33). %% Sequence, Pathspec... -> Sequence | OBJECT, Pathspec... -> OBJECT
+                      %% Get a subset of an object by selecting some attributes to discard, or
+                      %% map that over a sequence.  (Both unpick and without, polymorphic.)
+-define(TERMTYPE_WITHOUT  , 34). %% Sequence, Pathspec... -> Sequence | OBJECT, Pathspec... -> OBJECT
+                        %% Merge objects (right-preferential)
+-define(TERMTYPE_MERGE    , 35). %% OBJECT... -> OBJECT | Sequence -> Sequence
+
+
 -define(TERMTYPE_AND, 67).
 -define(TERMTYPE_OR, 66).
 
