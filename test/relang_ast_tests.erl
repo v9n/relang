@@ -50,8 +50,35 @@ table_drop_test() ->
 get_test() ->
   Q = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {get, <<"key">>}],
   R = [16, [[15,[[14,[<<"test">>]],<<"tv_shows">>]], <<"key">>]],
-  ?assertMatch(R, relang_ast:make(Q))
-  .
+  ?test.
+
+keys_test() ->
+  Q = [{table, <<"dummy">>}, {get, <<"7541a1ed-20ae-42f2-b7ea-73fbeb668d07">>}, {keys}],
+  R = [94,[[16,[[15,[<<"dummy">>]], <<"7541a1ed-20ae-42f2-b7ea-73fbeb668d07">>]]]],
+  ?test.
+
+object_test() ->
+  Q = [{object, [<<"k1">>, 1, <<"k2">>, 2]}],
+  R = [143,[<<"k1">>,1,<<"k2">>,2]],
+  ?showResult,
+  ?test.
+
+get_field_test() ->
+  Q = [
+       {table, <<"test">>},
+       {get, <<"id">>},
+       {get_field, <<"f">>}
+      ],
+  R = [31,[[16,[[15,[<<"test">>]],<<"id">>]],<<"f">>]],
+  ?test.
+
+get_field_on_sequence_test() ->
+  Q = [
+       {table, <<"wall_posts">>},
+       {get_field, <<"id">>}
+      ],
+  R = [31,[[15,[<<"wall_posts">>]],<<"id">>]],
+  ?test.
 
 insert_test() ->
   Q = [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {insert, [[{<<"name">>, <<"kurei">>}, {<<"age">>, <<28>>}]]}],
@@ -499,3 +526,25 @@ geojson_using_in_expression_test()->
     ]],
 
   ?test.
+
+%to_geojson_test()->
+%  Q =
+%    [
+%      {table, geo},
+%      {
+%       get, {sfo, location}
+%      },
+%      {to_geojson}
+%    ],
+%  R = [158,[[170,[[16,[[15,["geo"]],"sfo"]],"location"]]]],
+%  ?test.
+
+
+%get_field_test()->
+%  ?test.
+%
+%keys_test() -> 
+%  ?test.
+%
+%object() -> 
+%  ?test.

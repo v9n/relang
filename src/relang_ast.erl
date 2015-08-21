@@ -42,6 +42,8 @@ build(Query) when is_tuple(Query) ->
     polygon -> apply(?MODULE, F, [Params]) ;
     line -> apply(?MODULE, F, [Params]) ;
     geojson -> apply(?MODULE, F, [Params]) ;
+    %%% some document manipulation command receive variadic parameter
+    object -> apply(?MODULE, F, [Params]) ;
     _ -> apply(?MODULE, F, Params)
   end;
 build(N) when is_number(N) ->
@@ -132,6 +134,24 @@ get(Table, Key) ->
    ?TERMTYPE_GET,
    [Table, Key]
   ].
+
+get_field(O, F) ->
+  [
+   ?TERMTYPE_GET_FIELD,
+   [O, F]
+  ].
+
+getField(O, F) ->
+  [
+   ?TERMTYPE_GET_FIELD,
+   [O, F]
+  ].
+
+keys(O) ->
+  [?TERMTYPE_KEYS, [O]].
+
+object(O) ->
+  [?TERMTYPE_OBJECT, O].
 
 table_create(Name) ->
   [
@@ -480,3 +500,8 @@ geojson(O) ->
             end
       end, O),
   [?TERMTYPE_GEOJSON, [A]].
+
+to_jsongeojson() ->
+  [?TERMTYPE_TO_GEOJSON,
+    []
+  ].

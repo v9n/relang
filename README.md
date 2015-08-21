@@ -208,6 +208,27 @@ relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}]).
 relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {get, <<"primarykey">>]).
 ```
 
+### Nested field
+
+A ReQL document is a JSON object: a set of key-value pairs, in which
+each value might be a single value, a list of values, or another set of
+key-value pairs. When the value of a field contains more fields, we
+describe these as nested fields.
+
+We access nested field, or indicate it by using a list, to denote a
+path.
+
+
+```Erlang
+relang:r(C1, 
+  [
+    {db, [<<"test">>]},
+    {table, <<"user">>},
+    {get, [<<"primarykey">>, {field: []}]}
+  ]
+  ).
+```
+
 ### filter
 Reference filter below because they have a different syntax.
 
@@ -368,6 +389,13 @@ C1 = relang:connect("127.0.0.1")
 relang:r(C1, [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {insert, [[{<<"name">>, <<"kurei">>}, {<<"age">>, <<28>>}]]}])
 ```
 
+With nested field,
+
+```Erlang
+
+C1 = relang:connect("127.0.0.1")
+```
+
 ### Update
 
 ```Erlang
@@ -423,6 +451,52 @@ relang:r(relang:connect(),
 
 ```Erlang
 relang:query(C, [ {db, [<<"test">>]}, {table, [<<"tv_shows">>]}, {count}]).
+```
+
+## Document manipulation
+
+### get_field
+
+```Erlang
+relang:r(C1,
+  [
+    {db, [<<"test">>]},
+    {table, <<"wall_posts">>},
+    {get, <<"primarykey">>},
+    {get_field, <<"field">>},
+    {get_field, <<"sub_field">>}
+  ]).
+```
+
+Or
+
+```Erlang
+relang:r(C1,
+  [
+    {db, [<<"test">>]},
+    {table, <<"wall_posts">>},
+    {get_field, <<"id">>}
+  ]).
+```
+
+### keys
+
+```Erlang
+relang:r(relang:connect(),
+  [
+    {db, [<<"test">>]},
+    {table, <<"dummy">>},
+    {get, <<"7541a1ed-20ae-42f2-b7ea-73fbeb668d07">>},
+    {keys}
+  ]).
+%%
+%% Ok {"t":1,"r":[["f","id"]],"n":[]}atom response{ok,[[<<"f">>,<<"id">>]]}
+```
+
+### object
+
+```Erlang
+relang:r(relang:connect(),  [{object, [<<"k1">>, 1, <<"k2">>, 2]}]).
 ```
 
 ## Geospatial commands
@@ -507,7 +581,7 @@ relang:r(relang:connect(),
 
 #### geojson
 
-```
+```Erlang
 T = [{type,'Point'},
        {coordinates, [ -122.423246, 37.779388 ]
        }
@@ -515,6 +589,25 @@ T = [{type,'Point'},
 relang:r(relang:connect(), [{geojson, T]).
 ```
 
+Another complex example:
+
+```Erlang
+l(relang). l(relang_ast). l(log).
+T = [{type,'Point'},
+     {coordinates, [ -122.423246, 37.779388 ]
+     }
+    ]
+    .
+Q = [
+     {table, geo},
+     {insert, [[
+      {id, sfo},
+      {name, <<"San Francisco">>},
+      {location, relang:r([{geojson, T}])}
+              ]]}
+    ].
+relang:r(relang:connect(), Q).
+```
 
 #### to_geojson
 
