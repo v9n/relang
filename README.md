@@ -708,6 +708,12 @@ Make sure to use `tcpdump` during development for ReQL inspect
 tcpdump -nl -w - -i lo0 -c 500 port 28015|strings
 ```
 
+Once compile, we can get into REPl
+
+```
+erl -pa ebin -pa deps/protobuffs/ebin deps/jsx/ebin
+```
+
 # Test
 
 ```
