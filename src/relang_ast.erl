@@ -141,12 +141,6 @@ get_field(O, F) ->
    [O, F]
   ].
 
-getField(O, F) ->
-  [
-   ?TERMTYPE_GET_FIELD,
-   [O, F]
-  ].
-
 keys(O) ->
   [?TERMTYPE_KEYS, [O]].
 
