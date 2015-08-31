@@ -80,6 +80,25 @@ get_field_on_sequence_test() ->
   R = [31,[[15,[<<"wall_posts">>]],<<"id">>]],
   ?test.
 
+bracket_test() ->
+  Q = [
+       {table, <<"wall_posts">>},
+       {get, 20},
+       {bracket, <<"name">>}
+      ],
+  R = [170,[[16,[[15,[<<"wall_posts">>]],20]],<<"name">>]],
+  ?test.
+
+bracket_two_level_test() ->
+  Q = [
+       {table, <<"wall_posts">>},
+       {get, 100},
+       {bracket, [<<"address">>, <<"country">>]}
+      ],
+  R = [170,[[170,[[16,[[15,[<<"wall_post">>]],100]],<<"address">>]],<<"country">>]],
+  ?test.
+% r.table('wall_posts').get(100)["address"]['country']
+%
 insert_test() ->
   Q = [{db, [<<"test">>]},  {table, <<"tv_shows">>}, {insert, [[{<<"name">>, <<"kurei">>}, {<<"age">>, <<28>>}]]}],
   R = [56,[[15,[[14,[<<"test">>]], <<"tv_shows">>]], [{<<"name">>,<<"kurei">>}, {<<"age">>, <<28>>}]]],
@@ -527,24 +546,15 @@ geojson_using_in_expression_test()->
 
   ?test.
 
-%to_geojson_test()->
-%  Q =
-%    [
-%      {table, geo},
-%      {
-%       get, {sfo, location}
-%      },
-%      {to_geojson}
-%    ],
-%  R = [158,[[170,[[16,[[15,["geo"]],"sfo"]],"location"]]]],
-%  ?test.
+to_geojson_test()->
+  Q =
+    [
+      {table, geo},
+      {get, sfo},
+      {get_field, location},
+      {to_geojson}
+    ],
+  R = [158,[[170,[[16,[[15,["geo"]],"sfo"]],"location"]]]],
+  ?test.
 
 
-%get_field_test()->
-%  ?test.
-%
-%keys_test() -> 
-%  ?test.
-%
-%object() -> 
-%  ?test.

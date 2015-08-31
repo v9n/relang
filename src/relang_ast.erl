@@ -44,6 +44,7 @@ build(Query) when is_tuple(Query) ->
     geojson -> apply(?MODULE, F, [Params]) ;
     %%% some document manipulation command receive variadic parameter
     object -> apply(?MODULE, F, [Params]) ;
+    bracket -> apply(?MODULE, F, [Params]) ;
     _ -> apply(?MODULE, F, Params)
   end;
 build(N) when is_number(N) ->
@@ -140,6 +141,13 @@ get_field(O, F) ->
    ?TERMTYPE_GET_FIELD,
    [O, F]
   ].
+
+bracket(O, [F|T]) ->
+  [?TERMTYPE_BRACKET, [bracket(O, T), F]]
+  ;
+bracket(O, F) ->
+  [?TERMTYPE_BRACKET, [O, F]]
+  .
 
 keys(O) ->
   [?TERMTYPE_KEYS, [O]].

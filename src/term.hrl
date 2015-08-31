@@ -25,6 +25,7 @@
 -define(TERMTYPE_INSERT, 56).
 -define(TERMTYPE_NTH, 45). %% Sequence, NUMBER -> DATUM
 -define(BRACKET, 170).
+-define(TERMTYPE_BRACKET, 170).
 
 -define(TERMTYPE_INNER_JOIN         , 48). % Sequence, Sequence, Function(2) -> Sequence
 -define(TERMTYPE_OUTER_JOIN         , 49). % Sequence, Sequence, Function(2) -> Sequence
