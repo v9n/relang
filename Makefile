@@ -1,6 +1,6 @@
 PROJECT=relang
 REBAR=`which rebar || printf ./rebar`
-VERSION=0.1
+VERSION=0.1.1
 
 .PHONY: all docker
 all: get-deps compile repl

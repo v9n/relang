@@ -93,9 +93,10 @@ bracket_two_level_test() ->
   Q = [
        {table, <<"wall_posts">>},
        {get, 100},
-       {bracket, [<<"address">>, <<"country">>]}
+       {bracket, [[<<"address">>, <<"country">>]]}
       ],
   R = [170,[[170,[[16,[[15,[<<"wall_post">>]],100]],<<"address">>]],<<"country">>]],
+  ?showResult,
   ?test.
 % r.table('wall_posts').get(100)["address"]['country']
 %

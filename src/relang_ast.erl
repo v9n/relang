@@ -282,7 +282,7 @@ match(Field, Value) ->
 %%% Note: not a part of REQL
 %%% @TODO: improve
 field(P, F) ->
-  [?BRACKET, [make(P), F]].
+  [?TERMTYPE_BRACKET, [make(P), F]].
 
 nth(Sequence, N) ->
   [?TERMTYPE_NTH, [Sequence, N]].

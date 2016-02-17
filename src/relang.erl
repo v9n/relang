@@ -54,6 +54,18 @@ r(Q) -> query(Q).
 r(Socket, RawQuery) ->
   query(Socket, RawQuery).
 
+%%% Fetch next batch
+next({Socket, Token}) ->
+  Iolist = ["[2]"],
+  Length = iolist_size(Iolist),
+  io:format("Block socket <<< waiting for more data from stream~n"),
+
+  ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]),
+  {ok, R} = recv(Socket),
+  Rterm = jsx:decode(R),
+  proplists:get_value(<<"r">>, Rterm)
+  .
+
 %%% Build AST from raw query
 query(RawQuery) ->
   Query = relang_ast:make(RawQuery)
