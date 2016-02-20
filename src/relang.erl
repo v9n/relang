@@ -22,8 +22,8 @@ stop() ->
 
 %% http://erlang.org/pipermail/erlang-questions/2004-December/013734.html
 connect() ->
-  connect("127.0.0.1")
-  .
+  connect("127.0.0.1").
+
 connect(RethinkDBHost) ->
   {ok, Sock} = gen_tcp:connect(RethinkDBHost, 28015,
                                [binary, {packet, 0}, {active, false}]),
@@ -63,17 +63,16 @@ next({Socket, Token}) ->
   ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]),
   {ok, R} = recv(Socket),
   Rterm = jsx:decode(R),
-  proplists:get_value(<<"r">>, Rterm)
-  .
+  proplists:get_value(<<"r">>, Rterm).
 
 %%% Build AST from raw query
 query(RawQuery) ->
-  Query = relang_ast:make(RawQuery)
-  .
+  relang_ast:make(RawQuery).
+
 %%% Build and Run query when passing Socket
 query(Socket, RawQuery) ->
-  query(Socket, RawQuery, [{}])
-  .
+  query(Socket, RawQuery, [{}]).
+
 query(Socket, RawQuery, Option) ->
   {A1, A2, A3} = now(),
   random:seed(A1, A2, A3),
@@ -106,18 +105,18 @@ query(Socket, RawQuery, Option) ->
           io:format("Error"),
           {error, proplists:get_value(<<"r">>, Rterm)};
         ?SUCCESS_ATOM ->
-          io:format("atom response"),
+          io:format("response: a single atom"),
           {ok, proplists:get_value(<<"r">>, Rterm)};
         ?SUCCESS_SEQUENCE ->
-          io:format("SUCCESS_SEQUENCE"),
+          io:format("response: a sequence"),
           {ok, proplists:get_value(<<"r">>, Rterm)};
         ?SUCCESS_PARTIAL ->
           % So we get back a stream, let continous pull query
-          io:format("SUCCESS_PARTIAL <<< Get more data~n"),
+          io:format("response: partial. Can use next here"),
 
           Recv = spawn(?MODULE, stream_recv, [Socket, Token]),
           Pid = spawn(?MODULE, stream_poll, [{Socket, Token}, Recv]),
-          io:format("Do something else here~n"),
+
           {ok, {pid, Pid}, proplists:get_value(<<"r">>, Rterm)}
       end
       ;
@@ -130,8 +129,8 @@ query(Socket, RawQuery, Option) ->
 
 %%% When the response_type is SUCCESS_PARTIAL=3, we can call next to send more data
 next(Query) ->
-  continue
-  .
+  continue.
+
 stream_stop(Socket, Token) ->
   Iolist = ["[3]"],
   Length = iolist_size(Iolist),
@@ -188,77 +187,6 @@ recv(Socket) ->
       io:fwrite("Got Error ~s ~n", [Response]),
       {error, Response}
   end.
-
-run() ->
-  RethinkDBHost = "127.0.0.1", % to make it runnable on one machine
-  RethinkSock   = connect(RethinkDBHost),
-
-  Qlist = [{db_list}],
-  Qtlist = [{db, [<<"test">>]}, {table_list}],
-  Qtcreate = [{db, [<<"test">>]}, {table_create, [<<"kids2">>]}],
-
-  %<<"{\"name\":\"item87vinhtestinerlang\"}">>
-  M = [{<<"name">>, <<"vinh">>}],
-  Qtinsert = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {insert, [M]} ],
-  QtinsertWithOption = [{db, [<<"test">>]},
-                         {table, <<"tv_shows">>},
-                           {get, <<"6b443331-d7c9-4304-867d-251db183446f">>},
-                             {update,
-                                  [[{<<"name">>, <<"kurei kain">>},
-                                        {<<"age">>, <<29>>}]],
-                                      [{<<"durability">>, soft}, {return_changes, false}]
-                                        }
-                               ],
-
-  Qfetchall = [{db, [<<"test">>]}, {table, <<"tv_shows">>} ],
-  Qfchange = [{db, [<<"test">>]}, {table, <<"tv_shows">>}, {changes, fun(Item) -> io:format(Item) end} ],
-
-  Qtfilter = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {filter, [{<<"age">>, 30}]}],
-  Qtget = [{db, [<<"test">>]},  {table, <<"tv_shows">>},  {get, <<"1a98d636-1056-4579-84fd-c2ce33138792">>}],
-
-  QtEqZip = [{db, [<<"foodb">>]},
-              {table, <<"compounds_foods">>},
-              {eq_join,
-                   [<<"compound_id">>,
-                    [{db, [<<"foodb">>]}, {table, <<"compounds">>}]
-                   ]
-                 },
-              {zip}
-            ],
-
-  io:format("LIST DB ~n======~n"),
-  query(RethinkSock, Qlist),
-
-  io:format("LIST Table ~n======~n"),
-  query(RethinkSock, Qtlist),
-
-  io:format("Create  ~n======~n"),
-  query(RethinkSock, Qtcreate),
-
-  io:format("Insert ~n======~n"),
-  query(RethinkSock, Qtinsert),
-
-  io:format("Insert with option ~n======~n"),
-  query(RethinkSock, QtinsertWithOption),
-
-
-  io:format("Fetchall ~n======~n"),
-  query(RethinkSock, Qfetchall),
-
-  io:format("Filter ~n======~n"),
-  %query(RethinkSock, Qtfilter),
-
-  io:format("Single Get ~n======~n"),
-  query(RethinkSock, Qtget),
-
-  io:format("Equal Join with ZIp ~n======~n"),
-  query(RethinkSock, QtEqZip),
-
-  io:format("Changefeed ~n======~n"),
-  query(RethinkSock, Qfchange),
-
-  io:format("End")
-  .
 
 read_until_null(Socket) ->
   read_until_null(Socket, []).
