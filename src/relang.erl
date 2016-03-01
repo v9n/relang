@@ -55,15 +55,41 @@ r(Socket, RawQuery) ->
   query(Socket, RawQuery).
 
 %%% Fetch next batch
-next({Socket, Token}) ->
+%%% When the response_type is SUCCESS_PARTIAL=3, we can call next to send more data
+next({Socket, Token, R}, F) ->
+  lists:map(F, R),
+
   Iolist = ["[2]"],
   Length = iolist_size(Iolist),
-  io:format("Block socket <<< waiting for more data from stream~n"),
-
   ok = gen_tcp:send(Socket, [<<Token:64/little-unsigned>>, <<Length:32/little-unsigned>>, Iolist]),
-  {ok, R} = recv(Socket),
-  Rterm = jsx:decode(R),
-  proplists:get_value(<<"r">>, Rterm).
+  case recv(Socket) of
+    {ok, R} ->
+      io:format("Ok "),
+      io:format(R),
+      Rterm = jsx:decode(R),
+      %proplists:get_value(<<"r">>, Rterm),
+      case proplists:get_value(<<"t">>, Rterm) of
+        ?RUNTIME_ERROR ->
+          io:format("Error"),
+          {error, proplists:get_value(<<"r">>, Rterm)};
+        ?SUCCESS_ATOM ->
+          io:format("response: a single atom"),
+          F(proplists:get_value(<<"r">>, Rterm));
+        ?SUCCESS_SEQUENCE ->
+          io:format("response: a sequence"),
+          {ok, proplists:get_value(<<"r">>, Rterm)};
+        ?SUCCESS_PARTIAL ->
+          % So we get back a stream, let continous pull query
+          io:format("response: partial. Can use next here"),
+          next({Socket, Token, proplists:get_value(<<"r">>, Rterm)}, F);
+          %Recv = spawn(?MODULE, stream_recv, [Socket, Token]),
+          %Pid = spawn(?MODULE, stream_poll, [{Socket, Token}, Recv]),
+          %{ok, {pid, Pid}, proplists:get_value(<<"r">>, Rterm)}
+      end;
+    {error, ErrReason} ->
+      io:fwrite("Got Error when receving: ~s ~n", [ErrReason]),
+      {error, ErrReason}
+  end.
 
 %%% Build AST from raw query
 query(RawQuery) ->
@@ -113,11 +139,10 @@ query(Socket, RawQuery, Option) ->
         ?SUCCESS_PARTIAL ->
           % So we get back a stream, let continous pull query
           io:format("response: partial. Can use next here"),
-
-          Recv = spawn(?MODULE, stream_recv, [Socket, Token]),
-          Pid = spawn(?MODULE, stream_poll, [{Socket, Token}, Recv]),
-
-          {ok, {pid, Pid}, proplists:get_value(<<"r">>, Rterm)}
+          {cursor, {Socket, Token, proplists:get_value(<<"r">>, Rterm)}}
+          %Recv = spawn(?MODULE, stream_recv, [Socket, Token]),
+          %Pid = spawn(?MODULE, stream_poll, [{Socket, Token}, Recv]),
+          %{ok, {pid, Pid}, proplists:get_value(<<"r">>, Rterm)}
       end
       ;
     {error, ErrReason} ->
@@ -126,10 +151,6 @@ query(Socket, RawQuery, Option) ->
   end
   .
 %%%
-
-%%% When the response_type is SUCCESS_PARTIAL=3, we can call next to send more data
-next(Query) ->
-  continue.
 
 stream_stop(Socket, Token) ->
   Iolist = ["[3]"],
