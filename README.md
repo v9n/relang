@@ -42,7 +42,7 @@ read.
 %% Creation conection
 Connection = relang:connect("127.0.0.1")
 
-relang:r(Connection, [{db_create, "db1}])
+relang:r(Connection, [{db_create, "db1"}])
 relang:r(Connection, [{db_list}])
 relang:r(Connection, [{db, ["test"]}, {table_list}])
 relang:r(Connection, [{db, ["test"]}, {table_create, ["t1"]}])
